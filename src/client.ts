@@ -10,7 +10,7 @@ export type NetworkCode = 'NEM' | 'WEM' | 'AU';
 export type DataInterval = '5m' | '1h' | '1d' | '7d' | '1M' | '3M' | 'season' | '1y' | 'fy';
 export type DataPrimaryGrouping = 'network' | 'network_region';
 export type DataSecondaryGrouping = 'fueltech' | 'fueltech_group' | 'renewable';
-export type Metric = 'power' | 'energy' | 'price' | 'market_value' | 'emissions' | 'renewable_proportion';
+export type Metric = 'power' | 'energy' | 'price' | 'market_value' | 'emissions' | 'demand' | 'demand_power';
 export type UserPlan = 'BASIC' | 'PRO' | 'ENTERPRISE';
 
 // Base API Response
@@ -140,7 +140,7 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set('secondary_grouping', params.secondaryGrouping);
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    return this.request<NetworkTimeSeries>(`/data/energy/network/${networkCode}${query}`);
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/energy${query}`);
   }
 
   async getFacilityEnergy(
@@ -154,5 +154,112 @@ export class OpenElectricityClient {
   async getCurrentUser(): Promise<APIResponse<User>> {
     debug('Getting current user');
     return this.request('/me');
+  }
+
+  async getNetworkPower(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+      secondaryGrouping?: DataSecondaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network power', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+    if (params.secondaryGrouping) queryParams.set('secondary_grouping', params.secondaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/power${query}`);
+  }
+
+  async getNetworkPrice(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network price', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/price${query}`);
+  }
+
+  async getNetworkDemand(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network demand', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/demand${query}`);
+  }
+
+  async getNetworkDemandEnergy(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network demand energy', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/demand_energy${query}`);
+  }
+
+  async getNetworkMarketValue(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network market value', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/market_value${query}`);
   }
 }
