@@ -24,12 +24,6 @@ async function main() {
     // Transform data into tabular format
     const table = transformTimeSeriesTable(marketData.data);
 
-    // Print summary of fuel types
-    console.log('\nFuel Technologies:');
-    table.columns.forEach(col => {
-      console.log(`- ${col.name}: ${Object.entries(col.labels).map(([k, v]) => `${k}=${v}`).join(', ')}`);
-    });
-
     // Print the data as a table
     console.log('\nMonthly Market Value by Fuel Type ($):');
     console.table(createConsoleTable(table));
