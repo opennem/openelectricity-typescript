@@ -262,4 +262,25 @@ export class OpenElectricityClient {
     const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
     return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/market_value${query}`);
   }
+
+  async getNetworkEmissions(
+    networkCode: NetworkCode,
+    params: {
+      interval?: DataInterval;
+      dateStart?: string;
+      dateEnd?: string;
+      primaryGrouping?: DataPrimaryGrouping;
+    } = {}
+  ): Promise<APIResponse<NetworkTimeSeries>> {
+    debug('Getting network emissions', { networkCode, params });
+
+    const queryParams = new URLSearchParams();
+    if (params.interval) queryParams.set('interval', params.interval);
+    if (params.dateStart) queryParams.set('date_start', params.dateStart);
+    if (params.dateEnd) queryParams.set('date_end', params.dateEnd);
+    if (params.primaryGrouping) queryParams.set('primary_grouping', params.primaryGrouping);
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/emissions${query}`);
+  }
 }
