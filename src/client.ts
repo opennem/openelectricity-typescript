@@ -6,11 +6,23 @@
  */
 
 // Type definitions
-export type Interval = '5m' | '1h' | '1d' | '7d' | '1M' | '3M' | 'season' | '1y' | 'fy';
-export type PrimaryGrouping = 'network' | 'network_region';
-export type SecondaryGrouping = 'fueltech' | 'fueltech_group' | 'status' | 'renewable';
+export type DataInterval = '5m' | '1h' | '1d' | '7d' | '1M' | '3M' | 'season' | '1y' | 'fy';
+export type DataPrimaryGrouping = 'network' | 'network_region';
+export type DataSecondaryGrouping = 'fueltech' | 'fueltech_group' | 'status' | 'renewable';
 export type Metric = 'power' | 'energy' | 'price' | 'market_value' | 'emissions' | 'renewable_proportion';
+export type UserPlan = 'BASIC' | 'PRO' | 'ENTERPRISE';
 
+// Base API Response
+export interface APIResponse<T> {
+  version: string;
+  created_at: string;
+  success: boolean;
+  error: string | null;
+  data: T;
+  total_records?: number;
+}
+
+// Time Series Types
 export interface TimeSeriesResult {
   name: string;
   date_start: string;
@@ -23,29 +35,26 @@ export interface NetworkTimeSeries {
   network_code: string;
   metric: Metric;
   unit: string;
-  interval: Interval;
+  interval: DataInterval;
   start: string;
   end: string;
-  primary_grouping: PrimaryGrouping;
-  secondary_groupings: SecondaryGrouping[];
+  primary_grouping: DataPrimaryGrouping;
+  secondary_groupings: DataSecondaryGrouping[];
   results: TimeSeriesResult[];
 }
 
-export interface NetworkTimeSeriesResponse {
-  version: string;
-  created_at: string;
-  success: boolean;
-  error: string | null;
-  data: NetworkTimeSeries;
-  total_records?: number;
+// User Types
+export interface UserMeta {
+  remaining: number;
 }
 
-export interface OpenElectricityUser {
-  valid: boolean;
+export interface User {
   id: string;
-  owner_id?: string;
-  error?: string;
-  roles: ('admin' | 'pro' | 'academic' | 'user' | 'anonymous')[];
+  full_name: string;
+  email: string;
+  owner_id: string;
+  plan: UserPlan;
+  meta: UserMeta;
 }
 
 const debug = (message: string, data?: any) => {
@@ -72,7 +81,7 @@ export class OpenElectricityClient {
     }
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(path: string, options: RequestInit = {}): Promise<APIResponse<T>> {
     const url = `${this.baseUrl}${path}`;
     const headers = {
       'Authorization': `Bearer ${this.apiKey}`,
@@ -106,7 +115,7 @@ export class OpenElectricityClient {
       throw new Error(`API request failed: ${response.statusText}`);
     }
 
-    const data = await response.json() as T;
+    const data = await response.json() as APIResponse<T>;
     debug('Response data', data);
     return data;
   }
@@ -114,13 +123,13 @@ export class OpenElectricityClient {
   async getNetworkEnergy(
     networkCode: string,
     params: {
-      interval?: Interval;
+      interval?: DataInterval;
       dateStart?: string;
       dateEnd?: string;
-      primaryGrouping?: PrimaryGrouping;
-      secondaryGrouping?: SecondaryGrouping;
+      primaryGrouping?: DataPrimaryGrouping;
+      secondaryGrouping?: DataSecondaryGrouping;
     } = {}
-  ): Promise<NetworkTimeSeriesResponse> {
+  ): Promise<APIResponse<NetworkTimeSeries>> {
     debug('Getting network energy', { networkCode, params });
 
     const queryParams = new URLSearchParams();
@@ -131,18 +140,18 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set('secondary_grouping', params.secondaryGrouping);
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    return this.request<NetworkTimeSeriesResponse>(`/data/energy/network/${networkCode}${query}`);
+    return this.request<NetworkTimeSeries>(`/data/energy/network/${networkCode}${query}`);
   }
 
   async getFacilityEnergy(
     networkCode: string,
     facilityCode: string
-  ): Promise<any> {
+  ): Promise<APIResponse<any>> {
     debug('Getting facility energy', { networkCode, facilityCode });
     return this.request(`/data/energy/network/${networkCode}/${facilityCode}`);
   }
 
-  async getCurrentUser(): Promise<OpenElectricityUser> {
+  async getCurrentUser(): Promise<APIResponse<User>> {
     debug('Getting current user');
     return this.request('/me');
   }

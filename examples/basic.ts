@@ -1,4 +1,4 @@
-import OpenElectricityClient from '../src';
+import OpenElectricityClient from '@openelectricity/client';
 
 async function main() {
   // Initialize client
@@ -10,9 +10,9 @@ async function main() {
     // Get energy data for the NEM network
     const energyData = await client.getNetworkEnergy('NEM', {
       interval: '1h',
-      dateStart: '2024-01-01T00:00:00Z',
-      dateEnd: '2024-01-02T00:00:00Z',
-      primaryGrouping: 'network_region',
+      dateStart: '2024-01-01T00:00:00',
+      dateEnd: '2024-01-02T00:00:00',
+      primaryGrouping: 'network',
       secondaryGrouping: 'fueltech'
     });
 
@@ -32,12 +32,6 @@ async function main() {
       console.log('Labels:', firstResult.labels);
       console.log('First data point:', firstResult.data[0]);
     }
-
-    // Get current user info
-    const user = await client.getCurrentUser();
-    console.log('\nCurrent User:');
-    console.log('ID:', user.id);
-    console.log('Roles:', user.roles);
 
   } catch (error) {
     console.error('Error:', error);
