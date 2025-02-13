@@ -97,11 +97,11 @@ To run an example:
 # Set your API key
 export OPENELECTRICITY_API_KEY=your-api-key
 
-# Run an example with bun
+# Run an example with bun (recommended)
 bun run examples/basic.ts
 
-# Or with ts-node
-npx ts-node examples/basic.ts
+# Or with ts-node (for ESM support)
+npx ts-node --esm --experimentalSpecifierResolution=node examples/basic.ts
 ```
 
 Each example is fully documented with comments explaining the code. You can use these as starting points for your own implementation.

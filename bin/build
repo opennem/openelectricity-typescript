@@ -4,15 +4,35 @@ set -exuo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Build the project
+# Clean dist directory
+rm -rf dist
 
-bun build src/index.ts --outdir dist/
+# Build for Node.js (CommonJS)
+tsc -p tsconfig.node.json
 
-# Copy the README and LICENSE files
+# Build for Browser (ES Modules)
+tsc -p tsconfig.browser.json
 
-cp README.md dist/
-cp LICENSE dist/
+# Create package.json for the dist folder
+cat >dist/package.json <<EOF
+{
+  "name": "@openelectricity/client",
+  "version": "$(node -p "require('./package.json').version")",
+  "description": "OpenElectricity API Typescript/Javascript client",
+  "main": "./node/index.js",
+  "module": "./browser/index.js",
+  "types": "./node/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./node/index.js",
+      "import": "./browser/index.js",
+      "types": "./node/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "license": "MIT"
+}
+EOF
 
-# Copy the package.json file
-
-cp package.json dist/
+# Copy documentation files
+cp README.md LICENSE dist/

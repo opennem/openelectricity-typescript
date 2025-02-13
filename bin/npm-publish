@@ -2,6 +2,23 @@
 
 set -eux
 
+# Function to bump version
+bump_version() {
+  current_version=$(node -p "require('./package.json').version")
+  IFS='.' read -r major minor patch <<< "$current_version"
+  new_version="$major.$minor.$((patch + 1))"
+
+  # Update version in package.json
+  tmp=$(mktemp)
+  jq ".version = \"$new_version\"" package.json > "$tmp" && mv "$tmp" package.json
+
+  echo "$new_version"
+}
+
+# Bump the version
+NEW_VERSION=$(bump_version)
+
+# Set npm auth token
 npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
 
 # Build the project
@@ -10,11 +27,8 @@ yarn build
 # Navigate to the dist directory
 cd dist
 
-# Get the version from package.json
-VERSION="$(node -p "require('./package.json').version")"
-
 # Extract the pre-release tag if it exists
-if [[ "$VERSION" =~ -([a-zA-Z]+) ]]; then
+if [[ "$NEW_VERSION" =~ -([a-zA-Z]+) ]]; then
   # Extract the part before any dot in the pre-release identifier
   TAG="${BASH_REMATCH[1]}"
 else
@@ -22,4 +36,10 @@ else
 fi
 
 # Publish with the appropriate tag
-yarn publish --access public --tag "$TAG"
+yarn publish --access public --tag "$TAG" --new-version "$NEW_VERSION"
+
+# Go back to root and commit version bump
+cd ..
+git add package.json
+git commit -m "chore: bump version to $NEW_VERSION"
+git tag "v$NEW_VERSION"
