@@ -1,7 +1,15 @@
 {
   "name": "@openelectricity/client",
+  "version": "0.0.1",
   "module": "src/index.ts",
   "type": "module",
+  "private": false,
+  "scripts": {
+    "build": "./bin/build",
+    "test": "bun test",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "eslint": "^9.20.1",
@@ -13,9 +21,11 @@
     "typescript": "^5.0.0"
   },
   "volta": {
-    "node": "22.14.0"
+    "node": "22.14.0",
+    "yarn": "1.22.22"
   },
   "dependencies": {
-
+    "ts-node": "^10.9.2",
+    "tsc-multi": "^1.1.0"
   }
 }
