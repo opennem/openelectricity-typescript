@@ -13,11 +13,21 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@openelectricity/client": [
+        "src/index.ts"
+      ],
+      "@openelectricity/client/*": [
+        "src/*"
+      ]
+    },
     "outDir": "./dist",
     "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "examples/**/*"
   ],
   "exclude": [
     "node_modules",
