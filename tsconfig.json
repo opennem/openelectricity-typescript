@@ -26,12 +26,12 @@
     "rootDir": "./src"
   },
   "include": [
-    "src/**/*",
-    "examples/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
+    "examples",
     "**/*.test.ts"
   ]
 }
