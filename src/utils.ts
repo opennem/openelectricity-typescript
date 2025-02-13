@@ -74,7 +74,7 @@ export class TimeSeriesData {
   mean() {
     return this.table.columns.map(col => ({
       name: col.name,
-      value: col.values.reduce((sum, val) => sum + (val || 0), 0) / col.values.length,
+      value: col.values.filter(val => val !== null).reduce((sum, val) => sum + (val ?? 0), 0) / col.values.filter(val => val !== null).length,
       labels: col.labels
     }));
   }
