@@ -9,7 +9,7 @@
 export type NetworkCode = 'NEM' | 'WEM' | 'AU';
 export type DataInterval = '5m' | '1h' | '1d' | '7d' | '1M' | '3M' | 'season' | '1y' | 'fy';
 export type DataPrimaryGrouping = 'network' | 'network_region';
-export type DataSecondaryGrouping = 'fueltech' | 'fueltech_group' | 'status' | 'renewable';
+export type DataSecondaryGrouping = 'fueltech' | 'fueltech_group' | 'renewable';
 export type Metric = 'power' | 'energy' | 'price' | 'market_value' | 'emissions' | 'renewable_proportion';
 export type UserPlan = 'BASIC' | 'PRO' | 'ENTERPRISE';
 
