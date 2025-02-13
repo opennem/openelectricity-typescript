@@ -1,24 +1,44 @@
 {
   "name": "@openelectricity/client",
-  "version": "0.0.1",
-  "module": "src/index.ts",
-  "type": "module",
+  "version": "0.0.3",
+  "description": "OpenElectricity API Typescript/Javascript client",
+  "main": "./dist/node/index.js",
+  "module": "./dist/browser/index.js",
+  "types": "./dist/node/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/node/index.js",
+      "import": "./dist/browser/index.js",
+      "types": "./dist/node/index.d.ts"
+    }
+  },
+  "type": "commonjs",
   "private": false,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "./bin/build",
     "test": "bun test",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "prepublishOnly": "bun run build",
+    "publish": "./bin/npm-publish"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "eslint": "^9.20.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "jq": "^1.7.2",
     "prettier": "^3.5.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "imports": {
+    "openelectricity": "./src/index.ts",
+    "openelectricity/*": "./src/*"
   },
   "volta": {
     "node": "22.14.0",
