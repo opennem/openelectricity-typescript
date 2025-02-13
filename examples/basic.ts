@@ -1,5 +1,5 @@
 import OpenElectricityClient from '@openelectricity/client';
-import { createConsoleTable, transformTimeSeriesTable } from '@openelectricity/client/utils';
+import { createConsoleTable, transformTimeSeriesTable } from '@openelectricity/client/datatable';
 
 async function main() {
   // Initialize client

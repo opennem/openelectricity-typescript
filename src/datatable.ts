@@ -62,17 +62,24 @@ export function createConsoleTable(table: TimeSeriesTable) {
  * Time series data manipulation utilities
  */
 export class TimeSeriesData {
-  private table: TimeSeriesTable;
+  private _table: TimeSeriesTable;
 
   constructor(table: TimeSeriesTable) {
-    this.table = table;
+    this._table = table;
+  }
+
+  /**
+   * Accessor for the underlying table
+   */
+  get table() {
+    return this._table;
   }
 
   /**
    * Calculate mean values for each column
    */
   mean() {
-    return this.table.columns.map(col => ({
+    return this._table.columns.map(col => ({
       name: col.name,
       value: col.values.filter(val => val !== null).reduce((sum, val) => sum + (val ?? 0), 0) / col.values.filter(val => val !== null).length,
       labels: col.labels
@@ -83,7 +90,7 @@ export class TimeSeriesData {
    * Filter time series data by value threshold
    */
   filter(columnName: string, threshold: number, operator: '>' | '<' | '==' = '>') {
-    const column = this.table.columns.find(c => c.name === columnName);
+    const column = this._table.columns.find(c => c.name === columnName);
     if (!column) return this;
 
     const filteredIndices = column.values.map((val, i) => {
@@ -96,8 +103,8 @@ export class TimeSeriesData {
     });
 
     return new TimeSeriesData({
-      timestamps: this.table.timestamps.filter((_, i) => filteredIndices[i]),
-      columns: this.table.columns.map(col => ({
+      timestamps: this._table.timestamps.filter((_, i) => filteredIndices[i]),
+      columns: this._table.columns.map(col => ({
         ...col,
         values: col.values.filter((_, i) => filteredIndices[i])
       }))
@@ -109,8 +116,8 @@ export class TimeSeriesData {
    */
   rollingAverage(window: number) {
     return new TimeSeriesData({
-      timestamps: this.table.timestamps,
-      columns: this.table.columns.map(col => ({
+      timestamps: this._table.timestamps,
+      columns: this._table.columns.map(col => ({
         ...col,
         values: col.values.map((_, i) => {
           const slice = col.values.slice(Math.max(0, i - window), i + 1);
@@ -127,12 +134,12 @@ export class TimeSeriesData {
    * Sum values across specified columns
    */
   sumColumns(columnNames: string[]) {
-    const relevantColumns = this.table.columns
+    const relevantColumns = this._table.columns
       .filter(col => columnNames.includes(col.name));
 
     return {
       name: columnNames.join('+'),
-      values: this.table.timestamps.map((_, i) => {
+      values: this._table.timestamps.map((_, i) => {
         const values = relevantColumns.map(col => col.values[i] || 0);
         return values.reduce((a, b) => a + b, 0);
       })
