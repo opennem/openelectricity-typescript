@@ -82,6 +82,30 @@ try {
 }
 ```
 
+### Examples
+
+The repository includes several example scripts in the `examples/` directory demonstrating common use cases:
+
+```bash
+examples/
+├── basic.ts         # Basic usage of network energy endpoints
+```
+
+To run an example:
+
+```bash
+# Set your API key
+export OPENELECTRICITY_API_KEY=your-api-key
+
+# Run an example with bun
+bun run examples/basic.ts
+
+# Or with ts-node
+npx ts-node examples/basic.ts
+```
+
+Each example is fully documented with comments explaining the code. You can use these as starting points for your own implementation.
+
 ### Development Mode
 
 Set `NODE_ENV=development` to enable debug logging:
