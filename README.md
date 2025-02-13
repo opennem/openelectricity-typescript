@@ -2,11 +2,19 @@
 
 ![logo](https://platform.openelectricity.org.au/oe_logo_full.png)
 
+> [!WARNING]
+> This project and the v4 API are currently under active development.
+
 The [OpenElectricity](https://openelectricity.org.au) project (formerly OpenNEM) aims to make the wealth of public Australian energy data more accessible to a wider audience.
 
 This is the OpenElectricity API Typescript/Javascript client.
 
+> [!NOTE]
+> API key signups are currently waitlisted and will be released gradually.
+
 To obtain an API key visit [platform.openelectricity.org.au](https://platfrom.openelectricity.org.au)
+
+For documentation visit [docs.openelectricity.org.au](https://docs.openelectricity.org.au/introduction)
 
 ## Installation
 
