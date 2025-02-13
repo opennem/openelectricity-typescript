@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Build the project
+
+bun build src/index.ts --outdir dist/

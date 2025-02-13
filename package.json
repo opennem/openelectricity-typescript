@@ -1,0 +1,21 @@
+{
+  "name": "@openelectricity/client",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "eslint": "^9.20.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prettier": "^3.5.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "volta": {
+    "node": "22.14.0"
+  },
+  "dependencies": {
+
+  }
+}
