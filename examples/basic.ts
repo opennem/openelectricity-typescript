@@ -1,4 +1,5 @@
 import OpenElectricityClient from '@openelectricity/client';
+import { createConsoleTable, transformTimeSeriesTable } from '@openelectricity/client/utils';
 
 async function main() {
   // Initialize client
@@ -12,29 +13,32 @@ async function main() {
       interval: '1h',
       dateStart: '2024-01-01T00:00:00',
       dateEnd: '2024-01-02T00:00:00',
-      primaryGrouping: 'network',
-      secondaryGrouping: 'fueltech'
+      primaryGrouping: 'network_region',
     });
 
     // Print the results
     console.log('Energy Data Response:');
+    console.log('-------------------');
+    console.log(energyData);
     console.log('Version:', energyData.version);
     console.log('Success:', energyData.success);
     console.log('Number of results:', energyData.data.results.length);
 
-    // Print first result
-    if (energyData.data.results.length > 0) {
-      const firstResult = energyData.data.results[0];
-      console.log('\nFirst Result:');
-      console.log('Name:', firstResult.name);
-      console.log('Start:', firstResult.date_start);
-      console.log('End:', firstResult.date_end);
-      console.log('Labels:', firstResult.labels);
-      console.log('First data point:', firstResult.data[0]);
-    }
+    // Transform data into tabular format
+    const table = transformTimeSeriesTable(energyData.data);
+
+
+    // Print the data as a table
+    console.log('\nHourly Energy Data (MWh):');
+    console.table(createConsoleTable(table));
 
   } catch (error) {
-    console.error('Error:', error);
+    if (error instanceof Error) {
+      console.error('API Error:', error.message);
+    } else {
+      console.error('Unknown error occurred');
+    }
+    process.exit(1);
   }
 }
 

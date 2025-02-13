@@ -88,7 +88,9 @@ The repository includes several example scripts in the `examples/` directory dem
 
 ```bash
 examples/
+├── auth.ts          # Authentication and user information
 ├── basic.ts         # Basic usage of network energy endpoints
+└── analysis.ts      # Data analysis examples and alternatives
 ```
 
 To run an example:
@@ -101,7 +103,7 @@ export OPENELECTRICITY_API_KEY=your-api-key
 bun run examples/basic.ts
 
 # Or with ts-node (for ESM support)
-npx ts-node --esm --experimentalSpecifierResolution=node examples/basic.ts
+npx ts-node examples/basic.ts
 ```
 
 Each example is fully documented with comments explaining the code. You can use these as starting points for your own implementation.
@@ -147,3 +149,82 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## API Documentation
 
 For full API documentation, visit [docs.openelectricity.org.au](https://docs.openelectricity.org.au)
+
+## Data Analysis
+
+The client includes basic utilities for analyzing time series data:
+
+### Built-in Utilities
+
+```typescript
+// Using built-in utilities
+const table = transformTimeSeriesTable(energyData.data);
+const timeSeriesData = new TimeSeriesData(table);
+
+// Calculate means
+const means = timeSeriesData.mean();
+
+// Filter by threshold
+const peakPeriods = timeSeriesData.filter('coal_black', 20000, '>');
+
+// Calculate rolling averages
+const rollingAvg = timeSeriesData.rollingAverage(3);
+
+// Sum multiple columns
+const totalRenewables = timeSeriesData.sumColumns(['wind', 'solar_utility', 'hydro']);
+```
+
+### Alternative Analysis Tools
+
+For more advanced analysis needs, here are some recommended libraries that work well with the OpenElectricity client:
+
+#### Using Danfo.js
+
+[Danfo.js](https://danfo.jsdata.org/) provides pandas-like data analysis tools:
+
+```typescript
+import { DataFrame } from "danfojs-node";
+
+// Convert time series to DataFrame
+const df = new DataFrame(createConsoleTable(table));
+
+// Group by hour and calculate means
+const hourlyMeans = df.groupby(['hour']).mean();
+
+// Filter and sort
+const peakPeriods = df
+  .query(df['coal_black'].gt(20000))
+  .sortValues('timestamp', { ascending: false });
+```
+
+#### Using Arquero
+
+[Arquero](https://github.com/uwdata/arquero) provides a SQL-like interface for data manipulation:
+
+```typescript
+import * as aq from 'arquero';
+
+// Convert time series to Arquero table
+const aqTable = aq.from(createConsoleTable(table));
+
+// Group by fuel type and calculate statistics
+const summary = aqTable
+  .groupby('fueltech')
+  .rollup({
+    avg: d => op.mean(d.value),
+    max: d => op.max(d.value),
+    min: d => op.min(d.value)
+  });
+
+// Filter and transform
+const peakGeneration = aqTable
+  .filter(d => d.coal_black > 20000)
+  .select('timestamp', 'coal_black')
+  .orderby(aq.desc('coal_black'));
+```
+
+Both libraries provide extensive data analysis capabilities and can be used depending on your specific needs:
+- **Danfo.js**: Familiar pandas-like API, good for data scientists
+- **Arquero**: SQL-like operations, good for database developers
+
+See the [examples/analysis.ts](examples/analysis.ts) file for more examples using the built-in utilities.

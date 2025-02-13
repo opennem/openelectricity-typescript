@@ -6,6 +6,7 @@
  */
 
 // Type definitions
+export type NetworkCode = 'NEM' | 'WEM' | 'AU';
 export type DataInterval = '5m' | '1h' | '1d' | '7d' | '1M' | '3M' | 'season' | '1y' | 'fy';
 export type DataPrimaryGrouping = 'network' | 'network_region';
 export type DataSecondaryGrouping = 'fueltech' | 'fueltech_group' | 'status' | 'renewable';
@@ -116,12 +117,11 @@ export class OpenElectricityClient {
     }
 
     const data = await response.json() as APIResponse<T>;
-    debug('Response data', data);
     return data;
   }
 
   async getNetworkEnergy(
-    networkCode: string,
+    networkCode: NetworkCode,
     params: {
       interval?: DataInterval;
       dateStart?: string;
@@ -144,7 +144,7 @@ export class OpenElectricityClient {
   }
 
   async getFacilityEnergy(
-    networkCode: string,
+    networkCode: NetworkCode,
     facilityCode: string
   ): Promise<APIResponse<any>> {
     debug('Getting facility energy', { networkCode, facilityCode });
