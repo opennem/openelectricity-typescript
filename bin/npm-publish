@@ -19,7 +19,8 @@ bump_version() {
 NEW_VERSION=$(bump_version)
 
 # Set npm auth token
-npm config set '//registry.npmjs.org/:_authToken' "$NPM_TOKEN"
+yarn config set npmRegistryServer "https://registry.npmjs.org"
+yarn config set npmAuthToken "$NPM_TOKEN"
 
 # Build the project
 yarn build
