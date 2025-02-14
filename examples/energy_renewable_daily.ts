@@ -38,8 +38,23 @@ async function main() {
     const table = transformTimeSeriesTable(response.data);
 
     // Print the data as a table
-    console.log('\nCurrent Power Generation by Fuel Type (MW):');
+    console.log('\nEnergy Generation by Source (MWh):');
     console.table(createConsoleTable(table));
+
+    // Print summary statistics
+    console.log('\nSummary by Source:');
+    console.log('==================');
+
+    table.columns.forEach(column => {
+      const nonNullValues = column.values.filter((v): v is number => v !== null);
+      const total = nonNullValues.reduce((sum, value) => sum + value, 0);
+      const average = nonNullValues.length > 0 ? total / nonNullValues.length : 0;
+
+      console.log(`\n${column.name}:`);
+      console.log(`Total: ${total.toFixed(2)} MWh`);
+      console.log(`Average: ${average.toFixed(2)} MWh/day`);
+      console.log(`Renewable: ${column.labels.renewable === 'true' ? 'Yes' : 'No'}`);
+    });
 
   } catch (error) {
     console.error('Error fetching energy data:', error);

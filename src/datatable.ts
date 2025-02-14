@@ -5,7 +5,7 @@
 import { NetworkTimeSeries } from './client';
 
 export interface TimeSeriesTable {
-  timestamps: string[];
+  timestamps: Date[];
   columns: {
     name: string;
     values: (number | null)[];
@@ -14,9 +14,9 @@ export interface TimeSeriesTable {
 }
 
 /**
- * Transforms time series results into a tabular format
- * @param timeSeries The network time series response data
- * @returns Tabular representation of the time series
+ * Transforms a NetworkTimeSeries into a tabular format with parsed dates
+ * @param timeSeries The network time series data to transform
+ * @returns A table representation with parsed dates and columns
  */
 export function transformTimeSeriesTable(timeSeries: NetworkTimeSeries): TimeSeriesTable {
   // Get unique sorted timestamps from all results
@@ -25,15 +25,23 @@ export function transformTimeSeriesTable(timeSeries: NetworkTimeSeries): TimeSer
     result.data.forEach(([timestamp]) => timestamps.add(timestamp));
   });
 
-  const sortedTimestamps = Array.from(timestamps).sort().reverse();
+  // Sort timestamps and parse into Date objects
+  const sortedTimestamps = Array.from(timestamps)
+    .sort()
+    .reverse()
+    .map(timestamp => new Date(timestamp));
 
   // Create a map of timestamp -> value for each result
   const columns = timeSeries.results.map(result => {
-    const valueMap = new Map(result.data);
+    // Create a map using the ISO string representation for comparison
+    const valueMap = new Map(
+      result.data.map(([timestamp, value]) => [new Date(timestamp).toISOString(), value])
+    );
+
     return {
       name: result.name,
       labels: result.labels,
-      values: sortedTimestamps.map(timestamp => valueMap.get(timestamp) ?? null)
+      values: sortedTimestamps.map(date => valueMap.get(date.toISOString()) ?? null)
     };
   });
 
@@ -44,18 +52,24 @@ export function transformTimeSeriesTable(timeSeries: NetworkTimeSeries): TimeSer
 }
 
 /**
- * Creates a console-friendly table from time series data
- * @param table The time series table data
- * @returns Object suitable for console.table
+ * Creates a console-friendly table from a TimeSeriesTable
+ * @param table The time series table to format
+ * @returns An object suitable for console.table()
  */
-export function createConsoleTable(table: TimeSeriesTable) {
-  return table.timestamps.map((timestamp, i) => {
-    const row: Record<string, number | null | string> = { timestamp };
-    table.columns.forEach(column => {
-      row[column.name] = column.values[i];
-    });
-    return row;
+export function createConsoleTable(table: TimeSeriesTable): Record<string, Record<string, string | number | null>> {
+  const result: Record<string, Record<string, string | number | null>> = {};
+
+  table.timestamps.forEach((timestamp, i) => {
+    result[timestamp.toISOString()] = table.columns.reduce(
+      (acc, column) => ({
+        ...acc,
+        [column.name]: column.values[i]
+      }),
+      {}
+    );
   });
+
+  return result;
 }
 
 /**
