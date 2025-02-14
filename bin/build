@@ -1,34 +1,48 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -e
 
-set -exuo pipefail
-
-cd "$(dirname "$0")/.."
-
-# Clean dist directory
+# Clean dist
 rm -rf dist
 
-# Build for Node.js (CommonJS)
-tsc -p tsconfig.node.json
+# Build Node.js version
+echo "Building Node.js version..."
+tsc -p tsconfig.json
 
-# Build for Browser (ES Modules)
-tsc -p tsconfig.browser.json
+# Build browser version using rollup
+echo "Building browser version..."
+rollup -c rollup.config.js
 
-# Create package.json for the dist folder
+# Create package.json for dist
+echo "Creating dist package.json..."
 cat >dist/package.json <<EOF
 {
   "name": "@openelectricity/client",
   "version": "$(node -p "require('./package.json').version")",
   "description": "OpenElectricity API Typescript/Javascript client",
+  "type": "module",
   "main": "./node/index.js",
   "module": "./browser/index.js",
   "types": "./node/index.d.ts",
   "exports": {
     ".": {
-      "require": "./node/index.js",
-      "import": "./browser/index.js",
-      "types": "./node/index.d.ts"
+      "node": {
+        "import": "./node/index.js",
+        "require": "./node/index.js",
+        "types": "./node/index.d.ts"
+      },
+      "browser": {
+        "import": "./browser/index.js",
+        "types": "./browser/index.d.ts"
+      },
+      "default": "./browser/index.js"
+    },
+    "./datatable": {
+      "node": "./node/datatable.js",
+      "browser": "./browser/datatable.js",
+      "types": "./node/datatable.d.ts"
     }
   },
+  "browser": "./browser/index.js",
   "sideEffects": false,
   "license": "MIT"
 }

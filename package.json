@@ -7,12 +7,25 @@
   "types": "./dist/node/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/node/index.js",
-      "import": "./dist/browser/index.js",
-      "types": "./dist/node/index.d.ts"
+      "node": {
+        "import": "./dist/node/index.js",
+        "require": "./dist/node/index.js",
+        "types": "./dist/node/index.d.ts"
+      },
+      "browser": {
+        "import": "./dist/browser/index.js",
+        "types": "./dist/browser/index.d.ts"
+      },
+      "default": "./dist/browser/index.js"
+    },
+    "datatable": {
+      "node": "./dist/node/datatable.js",
+      "browser": "./dist/browser/datatable.js",
+      "types": "./dist/node/datatable.d.ts"
     }
   },
-  "type": "commonjs",
+  "browser": "./dist/browser/index.js",
+  "type": "module",
   "private": false,
   "files": [
     "dist"
@@ -22,11 +35,13 @@
     "test": "bun test",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "prepublishOnly": "bun run build",
+    "prepublishOnly": "npm run build",
     "publish": "./bin/npm-publish"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.6",
     "eslint": "^9.20.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-unused-imports": "^4.1.4",
@@ -36,16 +51,10 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
-  "imports": {
-    "openelectricity": "./src/index.ts",
-    "openelectricity/*": "./src/*"
-  },
   "volta": {
     "node": "22.14.0",
     "yarn": "1.22.22"
   },
   "dependencies": {
-    "ts-node": "^10.9.2",
-    "tsc-multi": "^1.1.0"
   }
 }

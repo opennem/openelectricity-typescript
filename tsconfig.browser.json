@@ -1,12 +1,24 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "module": "ES2020",
+    "target": "ES2020",
+    "outDir": "./dist/browser",
     "lib": [
       "ES2020",
       "DOM"
     ],
-    "target": "ES2020",
-    "module": "ES2020",
-    "outDir": "./dist/browser"
-  }
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "declarationDir": "./dist/browser"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "examples",
+    "**/*.test.ts"
+  ]
 }
