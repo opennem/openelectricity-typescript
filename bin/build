@@ -25,21 +25,22 @@ cat >dist/package.json <<EOF
   "types": "./node/index.d.ts",
   "exports": {
     ".": {
+      "types": "./node/index.d.ts",
+      "import": "./browser/index.js",
+      "require": "./node/index.js",
       "node": {
         "import": "./node/index.js",
-        "require": "./node/index.js",
-        "types": "./node/index.d.ts"
-      },
-      "browser": {
-        "import": "./browser/index.js",
-        "types": "./browser/index.d.ts"
-      },
-      "default": "./browser/index.js"
+        "require": "./node/index.js"
+      }
     },
     "./datatable": {
-      "node": "./node/datatable.js",
-      "browser": "./browser/datatable.js",
-      "types": "./node/datatable.d.ts"
+      "types": "./node/datatable.d.ts",
+      "import": "./browser/datatable.js",
+      "require": "./node/datatable.js",
+      "node": {
+        "import": "./node/datatable.js",
+        "require": "./node/datatable.js"
+      }
     }
   },
   "browser": "./browser/index.js",

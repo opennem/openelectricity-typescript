@@ -1,27 +1,28 @@
 {
   "name": "@openelectricity/client",
-  "version": "0.0.4",
+  "version": "0.0.8",
   "description": "OpenElectricity API Typescript/Javascript client",
   "main": "./dist/node/index.js",
   "module": "./dist/browser/index.js",
   "types": "./dist/node/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/browser/index.js",
+      "require": "./dist/node/index.js",
       "node": {
         "import": "./dist/node/index.js",
-        "require": "./dist/node/index.js",
-        "types": "./dist/node/index.d.ts"
-      },
-      "browser": {
-        "import": "./dist/browser/index.js",
-        "types": "./dist/browser/index.d.ts"
-      },
-      "default": "./dist/browser/index.js"
+        "require": "./dist/node/index.js"
+      }
     },
-    "datatable": {
-      "node": "./dist/node/datatable.js",
-      "browser": "./dist/browser/datatable.js",
-      "types": "./dist/node/datatable.d.ts"
+    "./datatable": {
+      "types": "./dist/node/datatable.d.ts",
+      "import": "./dist/browser/datatable.js",
+      "require": "./dist/node/datatable.js",
+      "node": {
+        "import": "./dist/node/datatable.js",
+        "require": "./dist/node/datatable.js"
+      }
     }
   },
   "browser": "./dist/browser/index.js",
