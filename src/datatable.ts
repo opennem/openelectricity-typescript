@@ -2,7 +2,8 @@
  * Utility functions for OpenElectricity API client
  */
 
-import { NetworkTimeSeries } from './client';
+import { NetworkCode, NetworkTimeSeries } from './client';
+import { NETWORK_TIMEZONE_OFFSETS } from './config';
 
 export interface TimeSeriesTable {
   timestamps: Date[];
@@ -14,34 +15,56 @@ export interface TimeSeriesTable {
 }
 
 /**
+ * Creates a date with the correct network timezone
+ * @param isoString ISO timestamp string
+ * @param network Network code for timezone
+ * @returns Date object with correct timezone offset
+ */
+function createNetworkDate(isoString: string, network: NetworkCode): Date {
+  const offset = NETWORK_TIMEZONE_OFFSETS[network];
+  const offsetStr = offset >= 0 ? `+${offset.toString().padStart(2, '0')}:00` : `-${Math.abs(offset).toString().padStart(2, '0')}:00`;
+  // Remove any existing timezone info and add network timezone
+  const localIsoString = isoString.replace(/\.\d+Z$|\.\d+[+-]\d+:\d+$|Z$|[+-]\d+:\d+$/, offsetStr);
+  return new Date(localIsoString);
+}
+
+/**
  * Transforms a NetworkTimeSeries into a tabular format with parsed dates
  * @param timeSeries The network time series data to transform
+ * @param network Network code for timezone information (required)
  * @returns A table representation with parsed dates and columns
  */
-export function transformTimeSeriesTable(timeSeries: NetworkTimeSeries): TimeSeriesTable {
+export function transformTimeSeriesTable(timeSeries: NetworkTimeSeries, network: NetworkCode): TimeSeriesTable {
+  if (!network) {
+    throw new Error('Network code is required for correct timezone handling');
+  }
+
   // Get unique sorted timestamps from all results
   const timestamps = new Set<string>();
   timeSeries.results.forEach(result => {
     result.data.forEach(([timestamp]) => timestamps.add(timestamp));
   });
 
-  // Sort timestamps and parse into Date objects
+  // Sort timestamps and parse into Date objects with network timezone
   const sortedTimestamps = Array.from(timestamps)
     .sort()
     .reverse()
-    .map(timestamp => new Date(timestamp));
+    .map(timestamp => createNetworkDate(timestamp, network));
 
   // Create a map of timestamp -> value for each result
   const columns = timeSeries.results.map(result => {
     // Create a map using the ISO string representation for comparison
     const valueMap = new Map(
-      result.data.map(([timestamp, value]) => [new Date(timestamp).toISOString(), value])
+      result.data.map(([timestamp, value]) => {
+        const date = createNetworkDate(timestamp, network);
+        return [date, value];
+      })
     );
 
     return {
       name: result.name,
       labels: result.labels,
-      values: sortedTimestamps.map(date => valueMap.get(date.toISOString()) ?? null)
+      values: sortedTimestamps.map(date => valueMap.get(date) ?? null)
     };
   });
 
