@@ -37,9 +37,7 @@
     "test:watch": "vitest",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts",
-    "prepublishOnly": "npm run build",
-    "publish": "./bin/npm-publish"
+    "format:check": "prettier --check src/**/*.ts"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.6",
