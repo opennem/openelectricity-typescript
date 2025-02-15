@@ -4,7 +4,8 @@
     "module": "CommonJS",
     "lib": [
       "ES2020",
-      "DOM"
+      "DOM",
+      "ES2022"
     ],
     "declaration": true,
     "sourceMap": true,
@@ -23,7 +24,10 @@
       ]
     },
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src/**/*"
