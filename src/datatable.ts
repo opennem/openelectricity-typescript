@@ -170,9 +170,7 @@ export class DataTable {
    */
   public describe(): Record<string, DescribeResult> {
     const result: Record<string, DescribeResult> = {}
-    const numericColumns = Object.keys(this.rows[0] || {}).filter(
-      (key) => typeof this.rows[0][key] === "number"
-    )
+    const numericColumns = Object.keys(this.rows[0] || {}).filter((key) => typeof this.rows[0][key] === "number")
 
     numericColumns.forEach((column) => {
       const values = this.rows
@@ -184,8 +182,7 @@ export class DataTable {
 
       const count = values.length
       const mean = values.reduce((sum, val) => sum + val, 0) / count
-      const variance =
-        values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count
+      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count
       const std = Math.sqrt(variance)
       const min = values[0]
       const max = values[values.length - 1]

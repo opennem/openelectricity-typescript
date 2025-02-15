@@ -151,7 +151,7 @@ export class OpenElectricityClient {
     const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/energy${query}`)
     return {
       response: response as unknown as APIResponse<NetworkTimeSeries>,
-      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined
+      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
     }
   }
 
@@ -188,7 +188,7 @@ export class OpenElectricityClient {
     const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/power${query}`)
     return {
       response: response as unknown as APIResponse<NetworkTimeSeries>,
-      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined
+      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
     }
   }
 
