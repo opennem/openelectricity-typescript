@@ -3,14 +3,14 @@
  * Provides a pandas/polars-like interface for time series data
  */
 
-import { NetworkCode, NetworkTimeSeries } from "./client"
+import { INetworkTimeSeries } from "./client"
 
-export interface DataTableRow {
+export interface IDataTableRow {
   interval: Date
   [key: string]: Date | string | number | boolean | null
 }
 
-export interface DescribeResult {
+export interface IDescribeResult {
   count: number
   mean: number
   std: number
@@ -22,12 +22,12 @@ export interface DescribeResult {
 }
 
 export class DataTable {
-  private rows: DataTableRow[]
+  private rows: IDataTableRow[]
   private groupings: string[]
   private metric: string
   private unit: string
 
-  constructor(rows: DataTableRow[], groupings: string[], metric: string, unit: string) {
+  constructor(rows: IDataTableRow[], groupings: string[], metric: string, unit: string) {
     this.rows = rows
     this.groupings = groupings
     this.metric = metric
@@ -37,7 +37,7 @@ export class DataTable {
   /**
    * Get all rows in the table
    */
-  public getRows(): DataTableRow[] {
+  public getRows(): IDataTableRow[] {
     return this.rows
   }
 
@@ -65,7 +65,7 @@ export class DataTable {
   /**
    * Filter rows based on a condition
    */
-  public filter(condition: (row: DataTableRow) => boolean): DataTable {
+  public filter(condition: (row: IDataTableRow) => boolean): DataTable {
     return new DataTable(this.rows.filter(condition), this.groupings, this.metric, this.unit)
   }
 
@@ -74,7 +74,7 @@ export class DataTable {
    */
   public select(columns: string[]): DataTable {
     const newRows = this.rows.map((row) => {
-      const newRow: DataTableRow = { interval: row.interval }
+      const newRow: IDataTableRow = { interval: row.interval }
       columns.forEach((col) => {
         if (col in row) {
           newRow[col] = row[col]
@@ -95,22 +95,25 @@ export class DataTable {
    * Group by specified columns and aggregate values
    */
   public groupBy(columns: string[], aggregation: "sum" | "mean" = "sum"): DataTable {
-    const groups = new Map<string, DataTableRow[]>()
+    const groups = new Map<string, IDataTableRow[]>()
 
     // Group rows by the specified columns
     this.rows.forEach((row) => {
-      const key = columns.map((col) => `${col}:${row[col]}`).join("_")
-      if (!groups.has(key)) {
-        groups.set(key, [])
+      const groupKey = columns.map((col) => `${col}:${row[col]}`).join("_")
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, [])
       }
-      groups.get(key)!.push(row)
+      const group = groups.get(groupKey)
+      if (group) {
+        group.push(row)
+      }
     })
 
     // Aggregate values for each group
-    const newRows: DataTableRow[] = []
-    groups.forEach((groupRows, key) => {
+    const newRows: IDataTableRow[] = []
+    groups.forEach((groupRows) => {
       const firstRow = groupRows[0]
-      const newRow: DataTableRow = { interval: firstRow.interval }
+      const newRow: IDataTableRow = { interval: firstRow.interval }
 
       // Add grouping columns
       columns.forEach((col) => {
@@ -155,7 +158,7 @@ export class DataTable {
   /**
    * Convert to console-friendly format
    */
-  public toConsole(): Record<string, any>[] {
+  public toConsole(): Record<string, unknown>[] {
     return this.rows.map((row) => {
       const { interval, ...rest } = row
       return {
@@ -168,8 +171,8 @@ export class DataTable {
   /**
    * Generate summary statistics for numeric columns
    */
-  public describe(): Record<string, DescribeResult> {
-    const result: Record<string, DescribeResult> = {}
+  public describe(): Record<string, IDescribeResult> {
+    const result: Record<string, IDescribeResult> = {}
     const numericColumns = Object.keys(this.rows[0] || {}).filter((key) => typeof this.rows[0][key] === "number")
 
     numericColumns.forEach((column) => {
@@ -209,15 +212,15 @@ export class DataTable {
 /**
  * Create a DataTable from NetworkTimeSeries response
  */
-export function createDataTable(data: NetworkTimeSeries, network: NetworkCode): DataTable {
-  const rows: DataTableRow[] = []
+export function createDataTable(data: INetworkTimeSeries): DataTable {
+  const rows: IDataTableRow[] = []
   const groupings = data.groupings || []
   const { metric, unit } = data
 
   // Process each result into rows
   data.results.forEach((result) => {
     result.data.forEach(([timestamp, value]) => {
-      const row: DataTableRow = {
+      const row: IDataTableRow = {
         interval: createNetworkDate(timestamp, data.network_timezone_offset),
         [metric]: value,
       }

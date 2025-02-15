@@ -5,6 +5,8 @@
  * Provides access to electricity network data and metrics.
  */
 
+/// <reference lib="dom" />
+
 import { DataTable, createDataTable } from "./datatable"
 import { debug } from "./utils"
 
@@ -17,7 +19,7 @@ export type Metric = "power" | "energy" | "price" | "market_value" | "emissions"
 export type UserPlan = "BASIC" | "PRO" | "ENTERPRISE"
 
 // Base API Response
-export interface APIResponse<T> {
+export interface IAPIResponse<T> {
   version: string
   created_at: string
   success: boolean
@@ -27,7 +29,7 @@ export interface APIResponse<T> {
 }
 
 // Time Series Types
-export interface TimeSeriesResult {
+export interface ITimeSeriesResult {
   name: string
   date_start: string
   date_end: string
@@ -35,7 +37,7 @@ export interface TimeSeriesResult {
   data: [string, number | null][]
 }
 
-export interface NetworkTimeSeries {
+export interface INetworkTimeSeries {
   network_code: string
   metric: Metric
   unit: string
@@ -43,27 +45,36 @@ export interface NetworkTimeSeries {
   start: string
   end: string
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
-  results: TimeSeriesResult[]
+  results: ITimeSeriesResult[]
   network_timezone_offset: string
 }
 
 // User Types
-export interface UserMeta {
+export interface IUserMeta {
   remaining: number
 }
 
-export interface User {
+export interface IUser {
   id: string
   full_name: string
   email: string
   owner_id: string
   plan: UserPlan
-  meta: UserMeta
+  meta: IUserMeta
 }
 
-export interface TimeSeriesResponse<T> {
-  response: APIResponse<T>
+export interface ITimeSeriesResponse<T> {
+  response: IAPIResponse<T>
   datatable?: DataTable
+}
+
+export interface IFacilityEnergy {
+  facility_code: string
+  network_code: NetworkCode
+  energy: number
+  interval: DataInterval
+  start: string
+  end: string
 }
 
 export class OpenElectricityClient {
@@ -78,8 +89,10 @@ export class OpenElectricityClient {
       baseUrl?: string
     } = {}
   ) {
-    this.apiKey = options.apiKey || process.env.OPENELECTRICITY_API_KEY || ""
-    this.baseUrl = options.baseUrl || process.env.OPENELECTRICITY_API_URL || "https://api.openelectricity.org.au/v4"
+    // eslint-disable-next-line no-undef
+    this.apiKey = options.apiKey || process?.env?.OPENELECTRICITY_API_KEY || ""
+    // eslint-disable-next-line no-undef
+    this.baseUrl = options.baseUrl || process?.env?.OPENELECTRICITY_API_URL || "https://api.openelectricity.org.au/v4"
 
     debug("Initializing client", { baseUrl: this.baseUrl })
 
@@ -90,7 +103,7 @@ export class OpenElectricityClient {
     }
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<APIResponse<T>> {
+  private async request<T>(path: string, options: RequestInit = {}): Promise<IAPIResponse<T>> {
     const url = `${this.baseUrl}${path}`
     const headers = {
       Authorization: `Bearer ${this.apiKey}`,
@@ -105,6 +118,7 @@ export class OpenElectricityClient {
     })
 
     const startTime = Date.now()
+    // eslint-disable-next-line no-undef
     const response = await fetch(url, {
       ...options,
       headers,
@@ -124,8 +138,14 @@ export class OpenElectricityClient {
       throw new Error(`API request failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as APIResponse<T>
+    const data = (await response.json()) as IAPIResponse<T>
     return data
+  }
+
+  async getFacilityEnergy(networkCode: NetworkCode, facilityCode: string): Promise<IAPIResponse<IFacilityEnergy>> {
+    debug("Getting facility energy", { networkCode, facilityCode })
+    const path = `/data/energy/network/${networkCode}/${facilityCode}`
+    return this.request<IFacilityEnergy>(path)
   }
 
   async getNetworkEnergy(
@@ -137,7 +157,7 @@ export class OpenElectricityClient {
       primaryGrouping?: DataPrimaryGrouping
       secondaryGrouping?: DataSecondaryGrouping
     } = {}
-  ): Promise<TimeSeriesResponse<NetworkTimeSeries>> {
+  ): Promise<ITimeSeriesResponse<INetworkTimeSeries>> {
     debug("Getting network energy", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -148,21 +168,19 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/energy${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}/energy${query}`)
     return {
-      response: response as unknown as APIResponse<NetworkTimeSeries>,
+      response: response as unknown as IAPIResponse<INetworkTimeSeries>,
       datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
     }
   }
 
-  async getFacilityEnergy(networkCode: NetworkCode, facilityCode: string): Promise<APIResponse<any>> {
-    debug("Getting facility energy", { networkCode, facilityCode })
-    return this.request(`/data/energy/network/${networkCode}/${facilityCode}`)
-  }
-
-  async getCurrentUser(): Promise<APIResponse<User>> {
+  async getCurrentUser(): Promise<IAPIResponse<IUser>> {
     debug("Getting current user")
-    return this.request("/me")
+    return {
+      response: await this.request<IUser>("/me"),
+      datatable: undefined,
+    }
   }
 
   async getNetworkPower(
@@ -174,7 +192,7 @@ export class OpenElectricityClient {
       primaryGrouping?: DataPrimaryGrouping
       secondaryGrouping?: DataSecondaryGrouping
     } = {}
-  ): Promise<TimeSeriesResponse<NetworkTimeSeries>> {
+  ): Promise<ITimeSeriesResponse<INetworkTimeSeries>> {
     debug("Getting network power", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -185,9 +203,9 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/power${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}/power${query}`)
     return {
-      response: response as unknown as APIResponse<NetworkTimeSeries>,
+      response: response as unknown as IAPIResponse<INetworkTimeSeries>,
       datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
     }
   }
@@ -200,7 +218,7 @@ export class OpenElectricityClient {
       dateEnd?: string
       primaryGrouping?: DataPrimaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<IAPIResponse<INetworkTimeSeries>> {
     debug("Getting network price", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -210,7 +228,7 @@ export class OpenElectricityClient {
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/price${query}`)
+    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/price${query}`)
   }
 
   async getNetworkDemand(
@@ -221,7 +239,7 @@ export class OpenElectricityClient {
       dateEnd?: string
       primaryGrouping?: DataPrimaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<IAPIResponse<INetworkTimeSeries>> {
     debug("Getting network demand", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -231,7 +249,7 @@ export class OpenElectricityClient {
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/demand${query}`)
+    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/demand${query}`)
   }
 
   async getNetworkDemandEnergy(
@@ -242,7 +260,7 @@ export class OpenElectricityClient {
       dateEnd?: string
       primaryGrouping?: DataPrimaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<IAPIResponse<INetworkTimeSeries>> {
     debug("Getting network demand energy", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -252,7 +270,7 @@ export class OpenElectricityClient {
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/demand_energy${query}`)
+    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/demand_energy${query}`)
   }
 
   async getNetworkMarketValue(
@@ -263,7 +281,7 @@ export class OpenElectricityClient {
       dateEnd?: string
       primaryGrouping?: DataPrimaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<IAPIResponse<INetworkTimeSeries>> {
     debug("Getting network market value", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -273,7 +291,7 @@ export class OpenElectricityClient {
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/market_value${query}`)
+    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/market_value${query}`)
   }
 
   async getNetworkEmissions(
@@ -284,7 +302,7 @@ export class OpenElectricityClient {
       dateEnd?: string
       primaryGrouping?: DataPrimaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<IAPIResponse<INetworkTimeSeries>> {
     debug("Getting network emissions", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -294,6 +312,6 @@ export class OpenElectricityClient {
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/emissions${query}`)
+    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/emissions${query}`)
   }
 }

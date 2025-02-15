@@ -1,15 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Utility functions for OpenElectricity client
+ */
 
-const isDevelopment = (): boolean => {
-  try {
-    return typeof process !== "undefined" && process.env.NODE_ENV === "development"
-  } catch {
-    return false // Fallback for environments where process is not available
-  }
-}
+// eslint-disable-next-line no-undef
+const isDevelopment = process?.env?.NODE_ENV === "development"
 
-export const debug = (message: string, data?: any): void => {
-  if (isDevelopment()) {
-    console.debug(`[OpenElectricity] ${message}`, data ?? "")
+/**
+ * Debug logging function
+ * Only logs in development mode
+ */
+export function debug(message: string, data?: unknown): void {
+  if (isDevelopment) {
+    // eslint-disable-next-line no-undef, no-console
+    console.log(`[OpenElectricity] ${message}`, data ? data : "")
   }
 }
