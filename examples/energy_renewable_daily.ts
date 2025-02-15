@@ -7,8 +7,8 @@
  * - Processing and displaying the results
  */
 
-import { NetworkCode, OpenElectricityClient } from '@openelectricity/client';
-import { createConsoleTable, transformTimeSeriesTable } from '@openelectricity/client/datatable';
+import { NetworkCode, OpenElectricityClient } from '../src';
+import { transformTimeSeriesTable } from '../src/datatable';
 
 async function main() {
   // Initialize the client
@@ -16,10 +16,9 @@ async function main() {
     apiKey: process.env.OPENELECTRICITY_API_KEY
   });
 
-  // Set the date range for the last 30 days
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
+  // Set the date range for Jan 15-16 2025
+  const startDate = new Date('2025-01-15');
+  const endDate = new Date('2025-01-16');
 
   // Specify the network we want to query
   const network: NetworkCode = 'NEM';
@@ -30,44 +29,47 @@ async function main() {
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),
       interval: '1d',
-      secondaryGrouping: 'renewable'  // Remove primaryGrouping to get renewable split directly
+      primaryGrouping: 'network_region',
+      secondaryGrouping: 'renewable'
     });
 
-    // Process and display the results
-    console.log(`Daily Energy Production by Renewable Status (${network})`);
-    console.log('==========================================');
+    // Transform the API response into a DataTable
+    const table = transformTimeSeriesTable(response.data[0], network);
 
-    // Transform the data with network-specific timezone
-    const table = transformTimeSeriesTable(response.data, network);
+    // Display all data
+    console.log('\nAll Energy Generation Data:');
+    console.table(table.toConsole());
 
-    // Create a more readable version of the table for display
-    const displayTable = {
-      ...table,
-      columns: table.columns.map(col => ({
-        ...col,
-        // Rename columns based on renewable status
-        name: col.labels.renewable === 'true' ? 'Renewable' : 'Non-renewable',
-        // Convert MWh to GWh for readability
-        values: col.values.map(v => v !== null ? Number((v / 1000).toFixed(2)) : null)
-      }))
-    };
+    // Group by network_region and renewable status
+    const groupedTable = table
+      .groupBy(['network_region', 'renewable'], 'sum')
+      .sortBy(['network_region', 'renewable']);
 
-    // Print the data as a table
-    console.log('\nDaily Energy Generation by Source (GWh):');
-    console.table(createConsoleTable(displayTable));
+    console.log('\nTotal Energy by Region and Renewable Status:');
+    console.table(groupedTable.toConsole());
 
-    // Print summary statistics
-    console.log('\nSummary by Source:');
-    console.log('==================');
+    // Calculate renewable percentage for each region
+    const regionTotals = table
+      .groupBy(['network_region'], 'sum')
+      .getRows();
 
-    displayTable.columns.forEach(column => {
-      const nonNullValues = column.values.filter((v): v is number => v !== null);
-      const total = nonNullValues.reduce((sum, value) => sum + value, 0);
-      const average = nonNullValues.length > 0 ? total / nonNullValues.length : 0;
+    const renewableByRegion = table
+      .filter(row => row.renewable === true)
+      .groupBy(['network_region'], 'sum')
+      .getRows();
 
-      console.log(`\n${column.name}:`);
-      console.log(`Total: ${total.toFixed(2)} GWh`);
-      console.log(`Average: ${average.toFixed(2)} GWh/day`);
+    console.log('\nRenewable Energy Share by Region:');
+    console.log('================================');
+
+    regionTotals.forEach(region => {
+      const renewable = renewableByRegion.find(r => r.network_region === region.network_region);
+      const energyValue = region[table.getMetric()] as number;
+      const renewableValue = renewable ? (renewable[table.getMetric()] as number) : 0;
+      const renewablePercentage = (renewableValue / energyValue) * 100;
+
+      console.log(`\n${region.network_region}:`);
+      console.log(`Total Energy: ${energyValue.toFixed(2)} MWh`);
+      console.log(`Renewable: ${renewablePercentage.toFixed(1)}%`);
     });
 
   } catch (error) {

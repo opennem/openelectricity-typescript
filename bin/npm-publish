@@ -23,7 +23,7 @@ yarn config set npmRegistryServer "https://registry.npmjs.org"
 yarn config set npmAuthToken "$NPM_TOKEN"
 
 # Build the project
-yarn build
+bun run build
 
 # Navigate to the dist directory
 cd dist

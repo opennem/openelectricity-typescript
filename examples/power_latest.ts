@@ -1,35 +1,89 @@
-import OpenElectricityClient from '@openelectricity/client';
-import { createConsoleTable, transformTimeSeriesTable } from '@openelectricity/client/datatable';
+/**
+ * Example showing how to fetch and analyze power generation data
+ * This example demonstrates:
+ * - Fetching recent power data with fuel tech grouping
+ * - Using DataTable features to analyze the data
+ * - Calculating summaries and statistics
+ */
+
+import { NetworkCode, OpenElectricityClient } from '../src';
+import { transformTimeSeriesTable } from '../src/datatable';
 
 async function main() {
   // Initialize client
   const client = new OpenElectricityClient({
-    // apiKey will be read from OPENELECTRICITY_API_KEY environment variable
+    apiKey: process.env.OPENELECTRICITY_API_KEY
   });
 
+  // Specify the network
+  const network: NetworkCode = 'NEM';
+
   try {
-    // Get latest power data for the NEM network
-    const powerData = await client.getNetworkPower('NEM', {
-      interval: '5m', // Use 5-minute intervals for most recent data
-      primaryGrouping: 'network',
+    // Get power data for the last 7 days
+    const response = await client.getNetworkPower(network, {
+      interval: '5m',
+      primaryGrouping: 'network_region',
       secondaryGrouping: 'fueltech'
     });
 
-    // Print the results
-    console.log('Power Data Response:');
-    console.log('-------------------');
-    console.log('Version:', powerData.version);
-    console.log('Success:', powerData.success);
-    console.log('Number of results:', powerData.data.results.length);
-    console.log('Time range:', powerData.data.start, 'to', powerData.data.end);
-    console.log('Unit:', powerData.data.unit);
+    // Transform data into a DataTable
+    const table = transformTimeSeriesTable(response.data[0], network);
 
-    // Transform data into tabular format
-    const table = transformTimeSeriesTable(powerData.data);
+    // Get the latest timestamp
+    const latestTime = Math.max(...table.getRows().map(r => r.interval.getTime()));
+    const latestData = table.filter(row => row.interval.getTime() === latestTime);
 
-    // Print the data as a table
-    console.log('\nCurrent Power Generation by Fuel Type (MW):');
-    console.table(createConsoleTable(table));
+    // Display current power generation by region
+    console.log('\nCurrent Power Generation by Region (MW):');
+    console.log('=======================================');
+    const byRegion = latestData
+      .groupBy(['network_region'], 'sum')
+      .sortBy(['network_region']);
+
+    console.table(byRegion.toConsole());
+
+    // Display current renewable vs non-renewable generation
+    console.log('\nCurrent Generation Mix:');
+    console.log('=====================');
+
+    const renewableFueltechs = ['solar', 'wind', 'hydro', 'battery'];
+    const currentGen = latestData.getRows();
+
+    const renewable = currentGen
+      .filter(row => renewableFueltechs.includes(row.fueltech as string))
+      .reduce((sum, row) => sum + (row[table.getMetric()] as number), 0);
+
+    const total = currentGen
+      .reduce((sum, row) => sum + (row[table.getMetric()] as number), 0);
+
+    const renewablePercentage = (renewable / total) * 100;
+
+    console.log(`Total Generation: ${total.toFixed(0)} MW`);
+    console.log(`Renewable Generation: ${renewable.toFixed(0)} MW (${renewablePercentage.toFixed(1)}%)`);
+    console.log(`Non-Renewable Generation: ${(total - renewable).toFixed(0)} MW (${(100 - renewablePercentage).toFixed(1)}%)`);
+
+    // Show top generating fuel types
+    console.log('\nCurrent Generation by Fuel Type (Top 5):');
+    console.log('=====================================');
+    const byFueltech = latestData
+      .groupBy(['fueltech'], 'sum')
+      .sortBy([table.getMetric()], false)
+      .select(['fueltech', table.getMetric()]);
+
+    console.table(byFueltech.getRows().slice(0, 5).map(row => ({
+      fueltech: row.fueltech,
+      [table.getMetric()]: (row[table.getMetric()] as number).toFixed(0) + ' MW'
+    })));
+
+    // Calculate average generation for the last 24 hours
+    const oneDayAgo = new Date(latestTime - 24 * 60 * 60 * 1000);
+    const last24h = table
+      .filter(row => row.interval >= oneDayAgo)
+      .groupBy(['network_region'], 'mean');
+
+    console.log('\nAverage Generation Last 24 Hours by Region:');
+    console.log('=========================================');
+    console.table(last24h.toConsole());
 
   } catch (error) {
     if (error instanceof Error) {
