@@ -7,7 +7,6 @@
  */
 
 import { NetworkCode, OpenElectricityClient } from '../src';
-import { transformTimeSeriesTable } from '../src/datatable';
 
 async function main() {
   // Initialize client
@@ -20,14 +19,15 @@ async function main() {
 
   try {
     // Get power data for the last 7 days
-    const response = await client.getNetworkPower(network, {
+    const { datatable: table } = await client.getNetworkPower(network, {
       interval: '5m',
       primaryGrouping: 'network_region',
       secondaryGrouping: 'fueltech'
     });
 
-    // Transform data into a DataTable
-    const table = transformTimeSeriesTable(response.data[0], network);
+    if (!table) {
+      throw new Error('No data returned from API');
+    }
 
     // Get the latest timestamp
     const latestTime = Math.max(...table.getRows().map(r => r.interval.getTime()));
@@ -84,6 +84,11 @@ async function main() {
     console.log('\nAverage Generation Last 24 Hours by Region:');
     console.log('=========================================');
     console.table(last24h.toConsole());
+
+    // Show summary statistics
+    console.log('\nSummary Statistics:');
+    console.log('==================');
+    console.table(table.describe());
 
   } catch (error) {
     if (error instanceof Error) {

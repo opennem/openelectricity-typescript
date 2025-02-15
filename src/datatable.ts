@@ -10,6 +10,17 @@ export interface DataTableRow {
   [key: string]: Date | string | number | boolean | null
 }
 
+export interface DescribeResult {
+  count: number
+  mean: number
+  std: number
+  min: number
+  q25: number
+  median: number
+  q75: number
+  max: number
+}
+
 export class DataTable {
   private rows: DataTableRow[]
   private groupings: string[]
@@ -153,12 +164,55 @@ export class DataTable {
       }
     })
   }
+
+  /**
+   * Generate summary statistics for numeric columns
+   */
+  public describe(): Record<string, DescribeResult> {
+    const result: Record<string, DescribeResult> = {}
+    const numericColumns = Object.keys(this.rows[0] || {}).filter(
+      (key) => typeof this.rows[0][key] === "number"
+    )
+
+    numericColumns.forEach((column) => {
+      const values = this.rows
+        .map((row) => row[column])
+        .filter((val): val is number => typeof val === "number" && !isNaN(val))
+        .sort((a, b) => a - b)
+
+      if (values.length === 0) return
+
+      const count = values.length
+      const mean = values.reduce((sum, val) => sum + val, 0) / count
+      const variance =
+        values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count
+      const std = Math.sqrt(variance)
+      const min = values[0]
+      const max = values[values.length - 1]
+      const q25 = values[Math.floor(count * 0.25)]
+      const median = values[Math.floor(count * 0.5)]
+      const q75 = values[Math.floor(count * 0.75)]
+
+      result[column] = {
+        count,
+        mean,
+        std,
+        min,
+        q25,
+        median,
+        q75,
+        max,
+      }
+    })
+
+    return result
+  }
 }
 
 /**
  * Create a DataTable from NetworkTimeSeries response
  */
-export function transformTimeSeriesTable(data: NetworkTimeSeries, network: NetworkCode): DataTable {
+export function createDataTable(data: NetworkTimeSeries, network: NetworkCode): DataTable {
   const rows: DataTableRow[] = []
   const groupings = data.groupings || []
   const { metric, unit } = data

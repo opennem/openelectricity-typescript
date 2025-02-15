@@ -2,44 +2,47 @@
 projectname = openelectricity-client
 bump=patch
 
-.PHONY: format
-format:
-	bun run format
+.PHONY: install test test-watch lint format format-check build bump release publish
 
-.PHONY: format-check
-format-check:
-	bun run format:check
-
-.PHONY: install
 install:
 	bun install
 	npm install --package-lock-only
 
-.PHONY: release
-release:
+test:
+	bun test
+
+test-watch:
+	bun test --watch
+
+lint:
+	bun run lint
+
+format:
+	bun run format
+
+format-check:
+	bun run format:check
+
+build:
+	bun run build
+
+bump:
 	@if [ -n "$$(git status --porcelain)" ]; then \
-		echo "There are uncommitted changes, please commit or stash them before running make release"; \
+		echo "There are uncommitted changes, please commit or stash them before running make bump"; \
 		exit 1; \
 	fi
 
-	# Run format check first
-	bun run format:check || (echo "Prettier check failed. Running formatter..." && bun run format && git add . && git commit -m "Format code for release")
-
-	# Bump version
-	current_branch=$(shell git rev-parse --abbrev-ref HEAD)
-
 	# if the current branch is develop then the bump level is prepatch
+	current_branch=$$(git rev-parse --abbrev-ref HEAD); \
 	if [ "$$current_branch" = "develop" ]; then \
 		bump=prepatch; \
-	fi
-
+	fi; \
 	npm version $(bump)
 
-	# Build the project
-	bun run build
-
-	# Push only the latest version tag
-	git push origin $$current_branch
+release: format format-check lint test bump build
+	# Push changes and tags
+	git push origin $$(git rev-parse --abbrev-ref HEAD)
 	git push origin v$$(node -p "require('./package.json').version")
 
+publish: release
 	npm publish

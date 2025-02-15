@@ -5,6 +5,7 @@
  * Provides access to electricity network data and metrics.
  */
 
+import { DataTable, createDataTable } from "./datatable"
 import { debug } from "./utils"
 
 // Type definitions
@@ -58,6 +59,11 @@ export interface User {
   owner_id: string
   plan: UserPlan
   meta: UserMeta
+}
+
+export interface TimeSeriesResponse<T> {
+  response: APIResponse<T>
+  datatable?: DataTable
 }
 
 export class OpenElectricityClient {
@@ -131,7 +137,7 @@ export class OpenElectricityClient {
       primaryGrouping?: DataPrimaryGrouping
       secondaryGrouping?: DataSecondaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<TimeSeriesResponse<NetworkTimeSeries>> {
     debug("Getting network energy", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -142,7 +148,11 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/energy${query}`)
+    const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/energy${query}`)
+    return {
+      response: response as unknown as APIResponse<NetworkTimeSeries>,
+      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined
+    }
   }
 
   async getFacilityEnergy(networkCode: NetworkCode, facilityCode: string): Promise<APIResponse<any>> {
@@ -164,7 +174,7 @@ export class OpenElectricityClient {
       primaryGrouping?: DataPrimaryGrouping
       secondaryGrouping?: DataSecondaryGrouping
     } = {}
-  ): Promise<APIResponse<NetworkTimeSeries>> {
+  ): Promise<TimeSeriesResponse<NetworkTimeSeries>> {
     debug("Getting network power", { networkCode, params })
 
     const queryParams = new URLSearchParams()
@@ -175,7 +185,11 @@ export class OpenElectricityClient {
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<NetworkTimeSeries>(`/data/network/${networkCode}/power${query}`)
+    const response = await this.request<NetworkTimeSeries[]>(`/data/network/${networkCode}/power${query}`)
+    return {
+      response: response as unknown as APIResponse<NetworkTimeSeries>,
+      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined
+    }
   }
 
   async getNetworkPrice(
