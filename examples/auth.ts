@@ -1,32 +1,39 @@
-import OpenElectricityClient from '@openelectricity/client';
+/**
+ * Example showing how to authenticate with the API
+ * This example demonstrates:
+ * - Setting up the client
+ * - Getting user information
+ * - Checking API limits
+ */
 
-async function main() {
+import { OpenElectricityClient } from "@openelectricity/client"
+
+async function main(): Promise<void> {
   // Initialize client
   const client = new OpenElectricityClient({
     // apiKey will be read from OPENELECTRICITY_API_KEY environment variable
-  });
+  })
 
   try {
     // Get current user info
-    const user = await client.getCurrentUser();
+    const user = await client.getCurrentUser()
 
-    console.log('Current User Information:');
-    console.log('------------------------');
-    console.log('Name:', user.data.full_name);
-    console.log('Email:', user.data.email);
-    console.log('Plan:', user.data.plan);
-    console.log('API Calls Remaining:', user.data.meta.remaining);
-    console.log('User ID:', user.data.id);
-    console.log('Owner ID:', user.data.owner_id);
-
+    console.log("Current User Information:")
+    console.log("------------------------")
+    console.log("Name:", user.data.full_name)
+    console.log("Email:", user.data.email)
+    console.log("Plan:", user.data.plan)
+    console.log("API Calls Remaining:", user.data.meta.remaining)
+    console.log("User ID:", user.data.id)
+    console.log("Owner ID:", user.data.owner_id)
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Authentication Error:', error.message);
+      console.error("Authentication Error:", error.message)
     } else {
-      console.error('Unknown error occurred');
+      console.error("Unknown error occurred")
     }
-    process.exit(1);
+    process.exit(1)
   }
 }
 
-main();
+main()

@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@openelectricity/client": [
+        "src/index.ts"
+      ],
+      "@openelectricity/client/*": [
+        "src/*"
       ]
     }
   },
