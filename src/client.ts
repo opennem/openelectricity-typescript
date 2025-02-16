@@ -33,7 +33,7 @@ export class OpenElectricityClient {
   private baseUrl: string
   private apiKey: string
 
-  private static apiVersion: string = "v4"
+  // private static apiVersion: string = "v4"
 
   constructor(
     options: {
