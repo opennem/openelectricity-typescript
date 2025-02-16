@@ -40,114 +40,111 @@ yarn add @openelectricity/client
 bun add @openelectricity/client
 ```
 
-## Quick Start
+## Usage
+
+### Basic Usage
 
 ```typescript
-import { OpenElectricityClient } from '@openelectricity/client';
+import { OpenElectricityClient } from "@openelectricity/client"
 
 // Initialize client
 const client = new OpenElectricityClient({
-  apiKey: process.env.OPENELECTRICITY_API_KEY
-});
+  // apiKey will be read from OPENELECTRICITY_API_KEY environment variable
+  // baseUrl defaults to https://api.openelectricity.org.au/v4
+})
 
-// Fetch power data
-const { datatable } = await client.getNetworkPower('NEM', {
-  interval: '5m',
-  primaryGrouping: 'network_region',
-  secondaryGrouping: 'fueltech'
-});
+// Get per-interval energy data for each fueltech for each region
+const { response, datatable } = await client.getData("NEM", ["energy"], {
+  interval: "5m",
+  dateStart: "2024-01-01T00:00:00",
+  dateEnd: "2024-01-02T00:00:00",
+  primaryGrouping: "network_region",
+  secondaryGroupings: ['fueltech_group']
+})
 
-// Use DataTable features to analyze the data
-const byRegion = datatable
-  .groupBy(['network_region'], 'sum')
-  .sortBy(['power'], false);
-
-console.table(byRegion.toConsole());
+// Get hourly price and demand data for each network region
+const { response, datatable } = await client.getMarket("NEM", ["price", "demand"], {
+  interval: "1h",
+  dateStart: "2024-01-01T00:00:00",
+  dateEnd: "2024-01-02T00:00:00",
+  primaryGrouping: "network_region"
+})
 ```
 
-## DataTable Interface
+### Available Metrics
 
-The client includes a powerful DataTable interface for analyzing time series data. Here's an example analyzing power generation:
+The client supports two types of data:
+
+1. Network Data (`getData`):
+   - `power`: Instantaneous power output (MW)
+   - `energy`: Energy generated (MWh)
+   - `emissions`: CO2 equivalent emissions (tCO2e)
+   - `market_value`: Market value ($)
+
+2. Market Data (`getMarket`):
+   - `price`: Spot price ($/MWh)
+   - `demand`: Demand (MW)
+   - `demand_energy`: Energy demand (MWh)
+
+### Available Groupings
+
+Queries for network data and market data support groupings. These groupings are all returned as columns in the data table.
+
+ 1. Primary grouping (`primaryGrouping`)
+    - `network` - Group by network (default)
+    - `network_region` - Group by network region
+
+Further, `getData` supports secondary groupings:
+
+  1. Secondary groupings (`secondaryGroupings`)
+    - `fueltech` - All the core fueltechs
+    - `fueltech_group` - Simplified list of fueltechs
+    - `renewable` - Group by renewable
+
+
+### Using the DataTable
+
+The client returns both the raw API response and a DataTable object that provides a pandas-like interface for data analysis:
 
 ```typescript
-// Get latest power data
-const { datatable } = await client.getNetworkPower('NEM', {
-  interval: '5m',
-  primaryGrouping: 'network_region',
-  secondaryGrouping: 'fueltech'
-});
+// Filter rows
+const filtered = datatable.filter(row => row.network_region === "NSW1")
 
-// Filter to latest timestamp
-const latestTime = Math.max(...datatable.getRows().map(r => r.interval.getTime()));
-const latest = datatable.filter(row => row.interval.getTime() === latestTime);
+// Group by columns
+const grouped = datatable.groupBy(["network_region"], "sum")
 
-// Group by region
-const byRegion = latest
-  .groupBy(['network_region'], 'sum')
-  .sortBy(['power']);
-
-// Calculate renewable percentage
-const renewableFueltechs = ['solar', 'wind', 'hydro', 'battery'];
-const currentGen = latest.getRows();
-const renewable = currentGen
-  .filter(row => renewableFueltechs.includes(row.fueltech))
-  .reduce((sum, row) => sum + row.power, 0);
-const total = currentGen.reduce((sum, row) => sum + row.power, 0);
-const renewablePercentage = (renewable / total) * 100;
+// Sort by values
+const sorted = datatable.sortBy(["energy"], false)
 
 // Get summary statistics
-const stats = datatable.describe();
+const stats = datatable.describe()
 ```
+
+### Examples
+
+Check out the `examples` directory for more detailed examples:
+
+- `basic.ts`: Simple data fetching
+- `analysis.ts`: Data analysis features
+- `energy_renewable_daily.ts`: Renewable energy analysis
+- `power_latest.ts`: Recent power generation analysis
+- `emission_factor.ts`: Emission factor calculations
 
 ## Development
 
-This project uses a Makefile for common development tasks:
-
 ```bash
 # Install dependencies
-make install
+bun install
 
 # Run tests
-make test
-make test-watch
+bun test
 
-# Lint and format code
-make lint
-make format
-make format-check
+# Build
+bun run build
 
-# Build the package
-make build
+# Lint
+bun run lint
 ```
-
-## Running Examples
-
-The `examples/` directory contains several example scripts demonstrating common use cases. You can run these examples using either Bun or ts-node:
-
-```bash
-# Using Bun (recommended)
-bun run examples/power_latest.ts
-
-# Using ts-node
-npx ts-node --esm examples/power_latest.ts
-```
-
-Available examples:
-- `power_latest.ts`: Analyze current power generation by region and fuel type
-- `energy_renewable_daily.ts`: Calculate daily renewable energy percentages
-- `demand_latest.ts`: Track current electricity demand
-
-Before running examples, make sure to set your API key:
-```bash
-export OPENELECTRICITY_API_KEY=your-api-key
-```
-
-## Configuration
-
-The client can be configured with the following environment variables:
-
-- `OPENELECTRICITY_API_KEY`: Your API key (required)
-- `OPENELECTRICITY_API_URL`: Override the API endpoint (optional)
 
 ## License
 
