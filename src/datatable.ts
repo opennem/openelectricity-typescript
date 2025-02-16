@@ -3,7 +3,7 @@
  * Provides a pandas/polars-like interface for time series data
  */
 
-import { INetworkTimeSeries } from "./client"
+import { INetworkTimeSeries } from "./types"
 
 export interface IDataTableRow {
   interval: Date
@@ -24,14 +24,12 @@ export interface IDescribeResult {
 export class DataTable {
   private rows: IDataTableRow[]
   private groupings: string[]
-  private metric: string
-  private unit: string
+  private metrics: Map<string, string> // Map of metric name to unit
 
-  constructor(rows: IDataTableRow[], groupings: string[], metric: string, unit: string) {
+  constructor(rows: IDataTableRow[], groupings: string[], metrics: Map<string, string>) {
     this.rows = rows
     this.groupings = groupings
-    this.metric = metric
-    this.unit = unit
+    this.metrics = metrics
   }
 
   /**
@@ -49,24 +47,17 @@ export class DataTable {
   }
 
   /**
-   * Get the metric name
+   * Get the metrics and their units
    */
-  public getMetric(): string {
-    return this.metric
-  }
-
-  /**
-   * Get the unit of measurement
-   */
-  public getUnit(): string {
-    return this.unit
+  public getMetrics(): Map<string, string> {
+    return this.metrics
   }
 
   /**
    * Filter rows based on a condition
    */
   public filter(condition: (row: IDataTableRow) => boolean): DataTable {
-    return new DataTable(this.rows.filter(condition), this.groupings, this.metric, this.unit)
+    return new DataTable(this.rows.filter(condition), this.groupings, this.metrics)
   }
 
   /**
@@ -83,11 +74,18 @@ export class DataTable {
       return newRow
     })
 
+    // Filter metrics to only include those in selected columns
+    const newMetrics = new Map<string, string>()
+    this.metrics.forEach((unit, metric) => {
+      if (columns.includes(metric)) {
+        newMetrics.set(metric, unit)
+      }
+    })
+
     return new DataTable(
       newRows,
       this.groupings.filter((g) => columns.includes(g)),
-      this.metric,
-      this.unit
+      newMetrics
     )
   }
 
@@ -101,11 +99,9 @@ export class DataTable {
     this.rows.forEach((row) => {
       const groupKey = columns.map((col) => `${col}:${row[col]}`).join("_")
       if (!groups.has(groupKey)) {
-        groups.set(groupKey, [])
-      }
-      const group = groups.get(groupKey)
-      if (group) {
-        group.push(row)
+        groups.set(groupKey, [row])
+      } else {
+        groups.get(groupKey)?.push(row)
       }
     })
 
@@ -113,24 +109,33 @@ export class DataTable {
     const newRows: IDataTableRow[] = []
     groups.forEach((groupRows) => {
       const firstRow = groupRows[0]
-      const newRow: IDataTableRow = { interval: firstRow.interval }
+      const newRow: IDataTableRow = {
+        interval: firstRow.interval,
+      }
 
       // Add grouping columns
       columns.forEach((col) => {
         newRow[col] = firstRow[col]
       })
 
-      // Aggregate metric value
-      if (aggregation === "sum") {
-        newRow[this.metric] = groupRows.reduce((sum, row) => sum + (row[this.metric] as number), 0)
-      } else {
-        newRow[this.metric] = groupRows.reduce((sum, row) => sum + (row[this.metric] as number), 0) / groupRows.length
-      }
+      // Aggregate metric values
+      this.metrics.forEach((_, metric) => {
+        const values = groupRows.map((row) => row[metric] as number).filter((val) => val !== null && !isNaN(val))
+        if (values.length > 0) {
+          if (aggregation === "sum") {
+            newRow[metric] = values.reduce((sum, val) => sum + val, 0)
+          } else {
+            newRow[metric] = values.reduce((sum, val) => sum + val, 0) / values.length
+          }
+        } else {
+          newRow[metric] = null
+        }
+      })
 
       newRows.push(newRow)
     })
 
-    return new DataTable(newRows, columns, this.metric, this.unit)
+    return new DataTable(newRows, columns, this.metrics)
   }
 
   /**
@@ -152,7 +157,7 @@ export class DataTable {
       return 0
     })
 
-    return new DataTable(sortedRows, this.groupings, this.metric, this.unit)
+    return new DataTable(sortedRows, this.groupings, this.metrics)
   }
 
   /**
@@ -210,37 +215,68 @@ export class DataTable {
 }
 
 /**
- * Create a DataTable from NetworkTimeSeries response
+ * Create a DataTable from NetworkTimeSeries responses
  */
-export function createDataTable(data: INetworkTimeSeries): DataTable {
+export function createDataTable(data: INetworkTimeSeries[]): DataTable {
   const rows: IDataTableRow[] = []
-  const groupings = data.groupings || []
-  const { metric, unit } = data
+  const groupings = data[0].groupings || []
+  const metrics = new Map<string, string>()
 
-  // Process each result into rows
-  data.results.forEach((result) => {
-    result.data.forEach(([timestamp, value]) => {
-      const row: IDataTableRow = {
-        interval: createNetworkDate(timestamp, data.network_timezone_offset),
-        [metric]: value,
-      }
+  // Create a map of all metrics and their units
+  data.forEach((series) => {
+    metrics.set(series.metric, series.unit)
+  })
 
-      // Add grouping columns from result.columns
-      Object.entries(result.columns).forEach(([key, value]) => {
-        row[key] = value
+  // Process each time series into rows
+  data.forEach((series) => {
+    series.results.forEach((result) => {
+      result.data.forEach(([timestamp, value]) => {
+        const date = createNetworkDate(timestamp, series.network_timezone_offset)
+        const dateKey = date.toISOString()
+
+        // Find or create row for this timestamp
+        let row = rows.find(
+          (r) =>
+            r.interval.toISOString() === dateKey && Object.entries(result.columns).every(([key, val]) => r[key] === val)
+        )
+
+        if (!row) {
+          // Create a new row with all columns from the result
+          row = {
+            interval: date,
+            ...result.columns,
+            [series.metric]: value,
+          }
+          rows.push(row)
+        } else {
+          // Update metric value in existing row
+          row[series.metric] = value
+        }
       })
-
-      rows.push(row)
     })
   })
 
-  return new DataTable(rows, groupings, metric, unit)
+  // Sort rows by interval
+  rows.sort((a, b) => a.interval.getTime() - b.interval.getTime())
+
+  return new DataTable(rows, groupings, metrics)
 }
 
 /**
  * Creates a date with the correct network timezone
  */
 function createNetworkDate(isoString: string, timezoneOffset: string): Date {
-  const localIsoString = isoString.replace(/\.\d+Z$|\.\d+[+-]\d+:\d+$|Z$|[+-]\d+:\d+$/, timezoneOffset)
-  return new Date(localIsoString)
+  // Parse the ISO string into a Date object
+  const date = new Date(isoString)
+
+  // Get the timezone offset in minutes
+  const offsetMatch = timezoneOffset.match(/([+-])(\d{2}):(\d{2})/)
+  if (!offsetMatch) return date
+
+  const [, sign, hours, minutes] = offsetMatch
+  const offsetMinutes = (parseInt(hours) * 60 + parseInt(minutes)) * (sign === "+" ? 1 : -1)
+
+  // Adjust the date by the timezone offset
+  const utcTime = date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
+  return new Date(utcTime)
 }

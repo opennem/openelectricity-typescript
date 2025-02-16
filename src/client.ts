@@ -7,72 +7,24 @@
 
 /// <reference lib="dom" />
 
-import { DataTable, createDataTable } from "./datatable"
+import { createDataTable } from "./datatable"
+import {
+  DataMetric,
+  IAPIResponse,
+  INetworkTimeSeries,
+  ITimeSeriesParams,
+  ITimeSeriesResponse,
+  IUser,
+  MarketMetric,
+  NetworkCode,
+} from "./types"
 import { debug } from "./utils"
-
-// Type definitions
-export type NetworkCode = "NEM" | "WEM" | "AU"
-export type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
-export type DataPrimaryGrouping = "network" | "network_region"
-export type DataSecondaryGrouping = "fueltech" | "fueltech_group" | "renewable"
-export type Metric = "power" | "energy" | "price" | "market_value" | "emissions" | "demand" | "demand_power"
-export type UserPlan = "BASIC" | "PRO" | "ENTERPRISE"
-
-// Base API Response
-export interface IAPIResponse<T> {
-  version: string
-  created_at: string
-  success: boolean
-  error: string | null
-  data: T
-  total_records?: number
-}
-
-// Time Series Types
-export interface ITimeSeriesResult {
-  name: string
-  date_start: string
-  date_end: string
-  columns: Record<string, string | boolean>
-  data: [string, number | null][]
-}
-
-export interface INetworkTimeSeries {
-  network_code: string
-  metric: Metric
-  unit: string
-  interval: DataInterval
-  start: string
-  end: string
-  groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
-  results: ITimeSeriesResult[]
-  network_timezone_offset: string
-}
-
-// User Types
-export interface IUserMeta {
-  remaining: number
-}
-
-export interface IUser {
-  id: string
-  full_name: string
-  email: string
-  owner_id: string
-  plan: UserPlan
-  meta: IUserMeta
-}
-
-export interface ITimeSeriesResponse<T> {
-  response: IAPIResponse<T>
-  datatable?: DataTable
-}
 
 export interface IFacilityEnergy {
   facility_code: string
   network_code: NetworkCode
   energy: number
-  interval: DataInterval
+  interval: string
   start: string
   end: string
 }
@@ -91,16 +43,13 @@ export class OpenElectricityClient {
   ) {
     // eslint-disable-next-line no-undef
     this.apiKey = options.apiKey || process?.env?.OPENELECTRICITY_API_KEY || ""
+    if (!this.apiKey) {
+      throw new Error("API key is required")
+    }
     // eslint-disable-next-line no-undef
     this.baseUrl = options.baseUrl || process?.env?.OPENELECTRICITY_API_URL || "https://api.openelectricity.org.au/v4"
 
     debug("Initializing client", { baseUrl: this.baseUrl })
-
-    if (!this.apiKey) {
-      throw new Error(
-        "API key is required. Set OPENELECTRICITY_API_KEY environment variable or pass apiKey in options."
-      )
-    }
   }
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<IAPIResponse<T>> {
@@ -142,176 +91,73 @@ export class OpenElectricityClient {
     return data
   }
 
+  /**
+   * Get data from the /data/network endpoint
+   * Supports power, energy, emissions and market_value metrics
+   */
+  async getData(
+    networkCode: NetworkCode,
+    metrics: DataMetric[],
+    params: ITimeSeriesParams = {}
+  ): Promise<ITimeSeriesResponse> {
+    debug("Getting network data", { networkCode, metrics, params })
+
+    const queryParams = new URLSearchParams()
+    metrics.forEach((metric) => queryParams.append("metrics", metric))
+    if (params.interval) queryParams.set("interval", params.interval)
+    if (params.dateStart) queryParams.set("date_start", params.dateStart)
+    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
+    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
+    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}${query}`)
+
+    return {
+      response,
+      datatable: createDataTable(response.data),
+    }
+  }
+
+  /**
+   * Get data from the /market/network endpoint
+   * Supports price, demand and demand_energy metrics
+   */
+  async getMarket(
+    networkCode: NetworkCode,
+    metrics: MarketMetric[],
+    params: ITimeSeriesParams = {}
+  ): Promise<ITimeSeriesResponse> {
+    debug("Getting market data", { networkCode, metrics, params })
+
+    const queryParams = new URLSearchParams()
+    metrics.forEach((metric) => queryParams.append("metrics", metric))
+    if (params.interval) queryParams.set("interval", params.interval)
+    if (params.dateStart) queryParams.set("date_start", params.dateStart)
+    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
+    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
+    const response = await this.request<INetworkTimeSeries[]>(`/market/network/${networkCode}${query}`)
+
+    return {
+      response,
+      datatable: createDataTable(response.data),
+    }
+  }
+
+  /**
+   * Get current user information
+   */
+  async getCurrentUser(): Promise<IAPIResponse<IUser>> {
+    debug("Getting current user")
+    return this.request<IUser>("/me")
+  }
+
   async getFacilityEnergy(networkCode: NetworkCode, facilityCode: string): Promise<IAPIResponse<IFacilityEnergy>> {
     debug("Getting facility energy", { networkCode, facilityCode })
     const path = `/data/energy/network/${networkCode}/${facilityCode}`
     return this.request<IFacilityEnergy>(path)
-  }
-
-  async getNetworkEnergy(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-      secondaryGrouping?: DataSecondaryGrouping
-    } = {}
-  ): Promise<ITimeSeriesResponse<INetworkTimeSeries>> {
-    debug("Getting network energy", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}/energy${query}`)
-    return {
-      response: response as unknown as IAPIResponse<INetworkTimeSeries>,
-      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
-    }
-  }
-
-  async getCurrentUser(): Promise<IAPIResponse<IUser>> {
-    debug("Getting current user")
-    return {
-      response: await this.request<IUser>("/me"),
-      datatable: undefined,
-    }
-  }
-
-  async getNetworkPower(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-      secondaryGrouping?: DataSecondaryGrouping
-    } = {}
-  ): Promise<ITimeSeriesResponse<INetworkTimeSeries>> {
-    debug("Getting network power", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}/power${query}`)
-    return {
-      response: response as unknown as IAPIResponse<INetworkTimeSeries>,
-      datatable: response.data[0] ? createDataTable(response.data[0], networkCode) : undefined,
-    }
-  }
-
-  async getNetworkPrice(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-    } = {}
-  ): Promise<IAPIResponse<INetworkTimeSeries>> {
-    debug("Getting network price", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/price${query}`)
-  }
-
-  async getNetworkDemand(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-    } = {}
-  ): Promise<IAPIResponse<INetworkTimeSeries>> {
-    debug("Getting network demand", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/demand${query}`)
-  }
-
-  async getNetworkDemandEnergy(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-    } = {}
-  ): Promise<IAPIResponse<INetworkTimeSeries>> {
-    debug("Getting network demand energy", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/demand_energy${query}`)
-  }
-
-  async getNetworkMarketValue(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-    } = {}
-  ): Promise<IAPIResponse<INetworkTimeSeries>> {
-    debug("Getting network market value", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/market_value${query}`)
-  }
-
-  async getNetworkEmissions(
-    networkCode: NetworkCode,
-    params: {
-      interval?: DataInterval
-      dateStart?: string
-      dateEnd?: string
-      primaryGrouping?: DataPrimaryGrouping
-    } = {}
-  ): Promise<IAPIResponse<INetworkTimeSeries>> {
-    debug("Getting network emissions", { networkCode, params })
-
-    const queryParams = new URLSearchParams()
-    if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    return this.request<INetworkTimeSeries>(`/data/network/${networkCode}/emissions${query}`)
   }
 }

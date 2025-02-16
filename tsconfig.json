@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "ESNext",
     "lib": [
       "ES2020",
       "DOM",
-      "ES2022"
+      "DOM.Iterable"
     ],
     "declaration": true,
     "sourceMap": true,
@@ -13,29 +13,27 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@openelectricity/client": [
-        "src/index.ts"
-      ],
-      "@openelectricity/client/*": [
+      "@/*": [
         "src/*"
       ]
-    },
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "types": [
-      "node"
-    ]
+    }
   },
   "include": [
-    "src/**/*"
+    "src",
+    "tests"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "examples",
-    "**/*.test.ts"
+    "dist"
   ]
 }
