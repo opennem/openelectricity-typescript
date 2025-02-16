@@ -118,9 +118,10 @@ export class DataTable {
    * Filter rows based on a condition
    */
   public filter(condition: (row: IDataTableRow) => boolean): DataTable {
-    // Use column indexes if filtering on indexed columns
-    if (this.isSimpleCondition(condition)) {
-      return this.filterUsingIndex(condition)
+    // Check if we can use index for simple equality conditions
+    const indexedFilter = this.tryIndexFilter(condition)
+    if (indexedFilter) {
+      return indexedFilter
     }
 
     // Fall back to regular filter for complex conditions
@@ -128,46 +129,27 @@ export class DataTable {
     return new DataTable(filteredRows, this.groupings, this.metrics)
   }
 
-  private isSimpleCondition(condition: Function): boolean {
-    const conditionStr = condition.toString()
-    // Check if the condition is a simple equality check on an indexed column
-    for (const column of this.groupings) {
-      if (conditionStr.includes(`row.${column} ===`)) {
-        return true
-      }
-    }
-    return false
-  }
+  private tryIndexFilter(condition: (row: IDataTableRow) => boolean): DataTable | null {
+    // Try to find matching rows in our column indexes
+    for (const [column, columnIndex] of this.cache.columnIndexes || []) {
+      // Test the first row to see if this is a simple equality check on this column
+      if (this.rows.length === 0) return null
+      const testRow = { ...this.rows[0] }
 
-  private filterUsingIndex(condition: (row: IDataTableRow) => boolean): DataTable {
-    // Extract column and value from condition
-    const conditionStr = condition.toString()
-    for (const column of this.groupings) {
-      if (conditionStr.includes(`row.${column} ===`)) {
-        const value = this.extractValueFromCondition(conditionStr)
-        const columnIndex = this.cache.columnIndexes?.get(column)
-        if (columnIndex && columnIndex.has(value)) {
-          const rows = columnIndex.get(value)
-          if (rows) {
-            return new DataTable([...rows], this.groupings, this.metrics)
-          }
+      // Try each possible value from the index
+      for (const [value, rows] of columnIndex) {
+        // Test if this is an equality check for this value
+        testRow[column] = value
+        const otherValues = { ...testRow }
+        otherValues[column] = value === true ? false : value === false ? true : value === 0 ? 1 : 0
+
+        if (condition(testRow) && !condition(otherValues)) {
+          return new DataTable([...rows], this.groupings, this.metrics)
         }
       }
     }
-    return this.filter(condition)
-  }
 
-  private extractValueFromCondition(conditionStr: string): string | number | boolean {
-    // Simple value extraction - can be enhanced for more complex cases
-    const matches = conditionStr.match(/=== ?(true|false|'[^']*'|\d+)/)
-    if (matches) {
-      const value = matches[1]
-      if (value === "true") return true
-      if (value === "false") return false
-      if (value.startsWith("'")) return value.slice(1, -1)
-      return Number(value)
-    }
-    return ""
+    return null
   }
 
   /**
