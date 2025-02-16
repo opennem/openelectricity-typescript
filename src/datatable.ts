@@ -46,6 +46,52 @@ export class DataTable {
     this.createColumnIndexes()
   }
 
+  /**
+   * Create a DataTable from NetworkTimeSeries responses
+   */
+  public static fromNetworkTimeSeries(data: INetworkTimeSeries[]): DataTable {
+    const rows: IDataTableRow[] = []
+    const groupings = data[0].groupings || []
+    const metrics = new Map<string, string>()
+    const table = new DataTable(rows, groupings, metrics)
+
+    // Create a map of all metrics and their units
+    data.forEach((series) => {
+      metrics.set(series.metric, series.unit)
+    })
+
+    // Process each time series into rows
+    data.forEach((series) => {
+      series.results.forEach((result) => {
+        result.data.forEach(([timestamp, value]) => {
+          const date = createNetworkDate(timestamp, series.network_timezone_offset)
+          const dateKey = date.toISOString()
+
+          // Create a unique key for the row
+          const rowKey = [dateKey, ...Object.entries(result.columns).map(([k, v]) => `${k}:${v}`)].join("_")
+
+          // Find or create row using rowsMap
+          let row = table.getRowByKey(rowKey)
+          if (!row) {
+            row = {
+              interval: date,
+              ...result.columns,
+              [series.metric]: value,
+            }
+          } else {
+            row[series.metric] = value
+          }
+          table.setRowByKey(rowKey, row)
+        })
+      })
+    })
+
+    // Sort rows by interval
+    table.rows.sort((a, b) => a.interval.getTime() - b.interval.getTime())
+
+    return table
+  }
+
   private createRowMap(): void {
     this.rowsMap = new Map(this.rows.map((row) => [this.createRowKey(row), row]))
   }
@@ -80,6 +126,25 @@ export class DataTable {
       }
 
       this.cache.columnIndexes.set(column, columnIndex)
+    }
+  }
+
+  /**
+   * Get a row by its unique key
+   * Used internally for efficient row lookups
+   */
+  private getRowByKey(key: string): IDataTableRow | undefined {
+    return this.rowsMap.get(key)
+  }
+
+  /**
+   * Update or add a row by its key
+   * Used internally for merging data
+   */
+  private setRowByKey(key: string, row: IDataTableRow): void {
+    this.rowsMap.set(key, row)
+    if (!this.rows.includes(row)) {
+      this.rows.push(row)
     }
   }
 
@@ -383,47 +448,7 @@ export class DataTable {
  * Create a DataTable from NetworkTimeSeries responses
  */
 export function createDataTable(data: INetworkTimeSeries[]): DataTable {
-  const rows: IDataTableRow[] = []
-  const groupings = data[0].groupings || []
-  const metrics = new Map<string, string>()
-  const rowMap = new Map<string, IDataTableRow>()
-
-  // Create a map of all metrics and their units
-  data.forEach((series) => {
-    metrics.set(series.metric, series.unit)
-  })
-
-  // Process each time series into rows
-  data.forEach((series) => {
-    series.results.forEach((result) => {
-      result.data.forEach(([timestamp, value]) => {
-        const date = createNetworkDate(timestamp, series.network_timezone_offset)
-        const dateKey = date.toISOString()
-
-        // Create a unique key for the row
-        const rowKey = [dateKey, ...Object.entries(result.columns).map(([k, v]) => `${k}:${v}`)].join("_")
-
-        // Find or create row using Map
-        let row = rowMap.get(rowKey)
-        if (!row) {
-          row = {
-            interval: date,
-            ...result.columns,
-            [series.metric]: value,
-          }
-          rowMap.set(rowKey, row)
-          rows.push(row)
-        } else {
-          row[series.metric] = value
-        }
-      })
-    })
-  })
-
-  // Sort rows by interval
-  rows.sort((a, b) => a.interval.getTime() - b.interval.getTime())
-
-  return new DataTable(rows, groupings, metrics)
+  return DataTable.fromNetworkTimeSeries(data)
 }
 
 /**
