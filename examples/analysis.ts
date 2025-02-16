@@ -28,18 +28,14 @@ async function main() {
     // Example 1: Calculate mean values for each region
     console.log("\nAverage Generation by Region:")
     console.log("============================")
-    const byRegion = datatable
-      .groupBy(["network_region"], "mean")
-      .sortBy(["network_region"])
+    const byRegion = datatable.groupBy(["network_region"], "mean").sortBy(["network_region"])
 
     console.table(byRegion.toConsole())
 
     // Example 2: Find peak periods
     console.log("\nPeak Generation Periods:")
     console.log("=======================")
-    const peakPeriods = datatable
-      .filter((row) => (row.power as number) > 25000)
-      .sortBy(["power"], false)
+    const peakPeriods = datatable.filter((row) => (row.power as number) > 25000).sortBy(["power"], false)
 
     console.table(peakPeriods.toConsole())
 
@@ -47,22 +43,6 @@ async function main() {
     console.log("\nSummary Statistics:")
     console.log("==================")
     console.table(datatable.describe())
-
-    // Example 4: Compare energy vs power
-    console.log("\nEnergy vs Power Correlation:")
-    console.log("===========================")
-    const correlation = datatable
-      .groupBy(["network_region"], "mean")
-      .getRows()
-      .map((row) => ({
-        region: row.network_region,
-        energy: row.energy,
-        power: row.power,
-        ratio: (row.energy as number) / (row.power as number),
-      }))
-
-    console.table(correlation)
-
   } catch (error) {
     if (error instanceof Error) {
       console.error("Analysis Error:", error.message)

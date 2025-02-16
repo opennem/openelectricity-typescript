@@ -36,7 +36,7 @@ async function main() {
     console.log("===========================")
     console.table(datatable.toConsole())
 
-    // Group by network_region and renewable status
+    // Group by network_region and renewable status in a single operation
     const groupedTable = datatable
       .groupBy(["network_region", "renewable"], "sum")
       .sortBy(["network_region", "renewable"])
@@ -45,26 +45,37 @@ async function main() {
     console.log("=========================================")
     console.table(groupedTable.toConsole())
 
-    // Calculate renewable percentage for each region
-    const regionTotals = datatable.groupBy(["network_region"], "sum").getRows()
-    const renewableByRegion = datatable
-      .filter((row) => row.renewable === true)
-      .groupBy(["network_region"], "sum")
-      .getRows()
-
+    // Calculate renewable percentage for each region in a single pass
     console.log("\nRenewable Energy Share by Region:")
     console.log("================================")
 
-    regionTotals.forEach((region) => {
-      const renewable = renewableByRegion.find((r) => r.network_region === region.network_region)
-      const energyValue = region.energy as number
-      const renewableValue = renewable ? (renewable.energy as number) : 0
-      const renewablePercentage = (renewableValue / energyValue) * 100
+    // Create a map for efficient lookups
+    const energyByRegion = new Map()
 
-      console.log(`\n${region.network_region}:`)
-      console.log(`Total Energy: ${energyValue.toFixed(2)} MWh`)
+    // First pass: collect totals
+    for (const row of groupedTable.getRows()) {
+      const region = row.network_region as string
+      if (!energyByRegion.has(region)) {
+        energyByRegion.set(region, {
+          total: 0,
+          renewable: 0,
+        })
+      }
+      const data = energyByRegion.get(region)
+      const energy = row.energy as number
+      data.total += energy
+      if (row.renewable === true) {
+        data.renewable += energy
+      }
+    }
+
+    // Second pass: calculate and display percentages
+    for (const [region, data] of energyByRegion) {
+      const renewablePercentage = (data.renewable / data.total) * 100
+      console.log(`\n${region}:`)
+      console.log(`Total Energy: ${data.total.toFixed(2)} MWh`)
       console.log(`Renewable: ${renewablePercentage.toFixed(1)}%`)
-    })
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error fetching energy data:", error.message)
