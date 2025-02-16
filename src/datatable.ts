@@ -21,15 +21,66 @@ export interface IDescribeResult {
   max: number
 }
 
+interface IDataTableCache {
+  sortedRows?: Map<string, IDataTableRow[]>
+  groupedRows?: Map<string, Map<string, IDataTableRow[]>>
+  latestTimestamp?: number
+  columnIndexes?: Map<string, Map<string | number | boolean, IDataTableRow[]>>
+}
+
 export class DataTable {
   private rows: IDataTableRow[]
   private groupings: string[]
-  private metrics: Map<string, string> // Map of metric name to unit
+  private metrics: Map<string, string>
+  private cache: IDataTableCache = {}
+  private rowsMap: Map<string, IDataTableRow>
 
   constructor(rows: IDataTableRow[], groupings: string[], metrics: Map<string, string>) {
     this.rows = rows
     this.groupings = groupings
     this.metrics = metrics
+    this.rowsMap = new Map()
+
+    // Create initial indexes
+    this.createRowMap()
+    this.createColumnIndexes()
+  }
+
+  private createRowMap(): void {
+    this.rowsMap = new Map(this.rows.map((row) => [this.createRowKey(row), row]))
+  }
+
+  private createRowKey(row: IDataTableRow): string {
+    const parts = [row.interval.toISOString()]
+    for (const grouping of this.groupings) {
+      parts.push(`${grouping}:${row[grouping]}`)
+    }
+    return parts.join("_")
+  }
+
+  private createColumnIndexes(): void {
+    this.cache.columnIndexes = new Map()
+
+    // Create indexes for grouping columns
+    for (const column of this.groupings) {
+      const columnIndex = new Map<string | number | boolean, IDataTableRow[]>()
+
+      for (const row of this.rows) {
+        const value = row[column]
+        // Skip null values in index
+        if (value === null || value instanceof Date) continue
+
+        if (!columnIndex.has(value)) {
+          columnIndex.set(value, [])
+        }
+        const rows = columnIndex.get(value)
+        if (rows) {
+          rows.push(row)
+        }
+      }
+
+      this.cache.columnIndexes.set(column, columnIndex)
+    }
   }
 
   /**
@@ -54,10 +105,69 @@ export class DataTable {
   }
 
   /**
+   * Get the latest timestamp in the data
+   */
+  public getLatestTimestamp(): number {
+    if (!this.cache.latestTimestamp) {
+      this.cache.latestTimestamp = Math.max(...this.rows.map((r) => r.interval.getTime()))
+    }
+    return this.cache.latestTimestamp
+  }
+
+  /**
    * Filter rows based on a condition
    */
   public filter(condition: (row: IDataTableRow) => boolean): DataTable {
-    return new DataTable(this.rows.filter(condition), this.groupings, this.metrics)
+    // Use column indexes if filtering on indexed columns
+    if (this.isSimpleCondition(condition)) {
+      return this.filterUsingIndex(condition)
+    }
+
+    // Fall back to regular filter for complex conditions
+    const filteredRows = this.rows.filter(condition)
+    return new DataTable(filteredRows, this.groupings, this.metrics)
+  }
+
+  private isSimpleCondition(condition: Function): boolean {
+    const conditionStr = condition.toString()
+    // Check if the condition is a simple equality check on an indexed column
+    for (const column of this.groupings) {
+      if (conditionStr.includes(`row.${column} ===`)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private filterUsingIndex(condition: (row: IDataTableRow) => boolean): DataTable {
+    // Extract column and value from condition
+    const conditionStr = condition.toString()
+    for (const column of this.groupings) {
+      if (conditionStr.includes(`row.${column} ===`)) {
+        const value = this.extractValueFromCondition(conditionStr)
+        const columnIndex = this.cache.columnIndexes?.get(column)
+        if (columnIndex && columnIndex.has(value)) {
+          const rows = columnIndex.get(value)
+          if (rows) {
+            return new DataTable([...rows], this.groupings, this.metrics)
+          }
+        }
+      }
+    }
+    return this.filter(condition)
+  }
+
+  private extractValueFromCondition(conditionStr: string): string | number | boolean {
+    // Simple value extraction - can be enhanced for more complex cases
+    const matches = conditionStr.match(/=== ?(true|false|'[^']*'|\d+)/)
+    if (matches) {
+      const value = matches[1]
+      if (value === "true") return true
+      if (value === "false") return false
+      if (value.startsWith("'")) return value.slice(1, -1)
+      return Number(value)
+    }
+    return ""
   }
 
   /**
@@ -93,47 +203,92 @@ export class DataTable {
    * Group by specified columns and aggregate values
    */
   public groupBy(columns: string[], aggregation: "sum" | "mean" = "sum"): DataTable {
+    const cacheKey = `${columns.join("_")}_${aggregation}`
+    const cachedGroups = this.cache.groupedRows?.get(cacheKey)
+    if (cachedGroups) {
+      return new DataTable(Array.from(cachedGroups.values()).flat(), columns, this.metrics)
+    }
+
     const groups = new Map<string, IDataTableRow[]>()
+    const groupKeyMap = new Map<string, Record<string, unknown>>()
 
-    // Group rows by the specified columns
-    this.rows.forEach((row) => {
+    // Single pass grouping and aggregation
+    for (const row of this.rows) {
       const groupKey = columns.map((col) => `${col}:${row[col]}`).join("_")
+
       if (!groups.has(groupKey)) {
-        groups.set(groupKey, [row])
-      } else {
-        groups.get(groupKey)?.push(row)
+        groups.set(groupKey, [])
+        groupKeyMap.set(
+          groupKey,
+          columns.reduce(
+            (acc, col) => {
+              acc[col] = row[col]
+              return acc
+            },
+            {} as Record<string, unknown>
+          )
+        )
       }
-    })
 
-    // Aggregate values for each group
+      const groupRows = groups.get(groupKey)
+      if (groupRows) {
+        groupRows.push(row)
+      }
+    }
+
+    // Efficient aggregation using pre-allocated arrays
     const newRows: IDataTableRow[] = []
-    groups.forEach((groupRows) => {
-      const firstRow = groupRows[0]
+    const metricNames = Array.from(this.metrics.keys())
+
+    for (const [groupKey, groupRows] of groups) {
+      const groupValues = groupKeyMap.get(groupKey)
+      if (!groupValues) continue
+
       const newRow: IDataTableRow = {
-        interval: firstRow.interval,
+        interval: groupRows[0].interval,
+        ...(groupValues as Record<string, unknown>),
       }
 
-      // Add grouping columns
-      columns.forEach((col) => {
-        newRow[col] = firstRow[col]
+      // Pre-allocate arrays for metric values
+      const metricArrays = new Map<string, number[]>()
+      metricNames.forEach((metric) => {
+        metricArrays.set(metric, new Array(groupRows.length))
       })
 
-      // Aggregate metric values
-      this.metrics.forEach((_, metric) => {
-        const values = groupRows.map((row) => row[metric] as number).filter((val) => val !== null && !isNaN(val))
-        if (values.length > 0) {
-          if (aggregation === "sum") {
-            newRow[metric] = values.reduce((sum, val) => sum + val, 0)
-          } else {
-            newRow[metric] = values.reduce((sum, val) => sum + val, 0) / values.length
+      // Single pass to collect all metric values
+      for (let i = 0; i < groupRows.length; i++) {
+        const row = groupRows[i]
+        metricNames.forEach((metric) => {
+          const value = row[metric] as number
+          const metricArray = metricArrays.get(metric)
+          if (value !== null && !isNaN(value) && metricArray) {
+            metricArray[i] = value
           }
-        } else {
-          newRow[metric] = null
+        })
+      }
+
+      // Calculate aggregations
+      metricNames.forEach((metric) => {
+        const metricArray = metricArrays.get(metric)
+        if (metricArray) {
+          const values = metricArray.filter((v) => v !== undefined)
+          if (values.length > 0) {
+            const sum = values.reduce((a, b) => a + b, 0)
+            newRow[metric] = aggregation === "sum" ? sum : sum / values.length
+          } else {
+            newRow[metric] = null
+          }
         }
       })
 
       newRows.push(newRow)
-    })
+    }
+
+    // Cache the results
+    if (!this.cache.groupedRows) {
+      this.cache.groupedRows = new Map()
+    }
+    this.cache.groupedRows.set(cacheKey, groups)
 
     return new DataTable(newRows, columns, this.metrics)
   }
@@ -142,6 +297,12 @@ export class DataTable {
    * Sort rows by specified columns
    */
   public sortBy(columns: string[], ascending = true): DataTable {
+    const cacheKey = `${columns.join("_")}_${ascending}`
+    const cachedRows = this.cache.sortedRows?.get(cacheKey)
+    if (cachedRows) {
+      return new DataTable([...cachedRows], this.groupings, this.metrics)
+    }
+
     const sortedRows = [...this.rows].sort((a, b) => {
       for (const col of columns) {
         const aVal = a[col]
@@ -156,6 +317,12 @@ export class DataTable {
       }
       return 0
     })
+
+    // Cache the results
+    if (!this.cache.sortedRows) {
+      this.cache.sortedRows = new Map()
+    }
+    this.cache.sortedRows.set(cacheKey, sortedRows)
 
     return new DataTable(sortedRows, this.groupings, this.metrics)
   }
@@ -180,33 +347,49 @@ export class DataTable {
     const result: Record<string, IDescribeResult> = {}
     const numericColumns = Object.keys(this.rows[0] || {}).filter((key) => typeof this.rows[0][key] === "number")
 
+    // Pre-allocate arrays for each column
+    const columnArrays = new Map<string, number[]>()
     numericColumns.forEach((column) => {
-      const values = this.rows
-        .map((row) => row[column])
-        .filter((val): val is number => typeof val === "number" && !isNaN(val))
-        .sort((a, b) => a - b)
+      columnArrays.set(column, [])
+    })
 
-      if (values.length === 0) return
+    // Single pass to collect all values
+    for (const row of this.rows) {
+      numericColumns.forEach((column) => {
+        const value = row[column] as number
+        const columnArray = columnArrays.get(column)
+        if (typeof value === "number" && !isNaN(value) && columnArray) {
+          columnArray.push(value)
+        }
+      })
+    }
 
+    // Calculate statistics for each column
+    numericColumns.forEach((column) => {
+      const values = columnArrays.get(column)
+      if (!values || values.length === 0) return
+
+      values.sort((a, b) => a - b)
       const count = values.length
-      const mean = values.reduce((sum, val) => sum + val, 0) / count
-      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count
-      const std = Math.sqrt(variance)
-      const min = values[0]
-      const max = values[values.length - 1]
-      const q25 = values[Math.floor(count * 0.25)]
-      const median = values[Math.floor(count * 0.5)]
-      const q75 = values[Math.floor(count * 0.75)]
+      const sum = values.reduce((a, b) => a + b, 0)
+      const mean = sum / count
+
+      // Calculate variance in single pass
+      let variance = 0
+      for (const value of values) {
+        variance += Math.pow(value - mean, 2)
+      }
+      variance /= count
 
       result[column] = {
         count,
         mean,
-        std,
-        min,
-        q25,
-        median,
-        q75,
-        max,
+        std: Math.sqrt(variance),
+        min: values[0],
+        q25: values[Math.floor(count * 0.25)],
+        median: values[Math.floor(count * 0.5)],
+        q75: values[Math.floor(count * 0.75)],
+        max: values[values.length - 1],
       }
     })
 
@@ -221,6 +404,7 @@ export function createDataTable(data: INetworkTimeSeries[]): DataTable {
   const rows: IDataTableRow[] = []
   const groupings = data[0].groupings || []
   const metrics = new Map<string, string>()
+  const rowMap = new Map<string, IDataTableRow>()
 
   // Create a map of all metrics and their units
   data.forEach((series) => {
@@ -234,22 +418,20 @@ export function createDataTable(data: INetworkTimeSeries[]): DataTable {
         const date = createNetworkDate(timestamp, series.network_timezone_offset)
         const dateKey = date.toISOString()
 
-        // Find or create row for this timestamp
-        let row = rows.find(
-          (r) =>
-            r.interval.toISOString() === dateKey && Object.entries(result.columns).every(([key, val]) => r[key] === val)
-        )
+        // Create a unique key for the row
+        const rowKey = [dateKey, ...Object.entries(result.columns).map(([k, v]) => `${k}:${v}`)].join("_")
 
+        // Find or create row using Map
+        let row = rowMap.get(rowKey)
         if (!row) {
-          // Create a new row with all columns from the result
           row = {
             interval: date,
             ...result.columns,
             [series.metric]: value,
           }
+          rowMap.set(rowKey, row)
           rows.push(row)
         } else {
-          // Update metric value in existing row
           row[series.metric] = value
         }
       })

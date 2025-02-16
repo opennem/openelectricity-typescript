@@ -31,41 +31,48 @@ async function main() {
       throw new Error("No data returned")
     }
 
-    // Get the latest timestamp
-    const latestTime = Math.max(...datatable.getRows().map((r) => r.interval.getTime()))
+    // Get the latest timestamp and data
+    const latestTime = datatable.getLatestTimestamp()
     const latestData = datatable.filter((row) => row.interval.getTime() === latestTime)
 
     // Display current power generation by region
     console.log("\nCurrent Power Generation by Region (MW):")
     console.log("=======================================")
-    const byRegion = latestData.groupBy(["network_region"], "sum").sortBy(["network_region"])
+    const byRegion = latestData.groupBy(["network_region"], "sum")
     console.table(byRegion.toConsole())
 
     // Display current renewable vs non-renewable generation
     console.log("\nCurrent Generation Mix:")
     console.log("=====================")
 
-    const renewableFueltechs = ["solar", "wind", "hydro", "battery"]
+    const renewableFueltechs = new Set(["solar", "wind", "hydro", "pumps", "bioenergy"])
     const currentGen = latestData.getRows()
 
-    const renewable = currentGen
-      .filter((row) => renewableFueltechs.includes(row.fueltech as string))
-      .reduce((sum, row) => sum + (row.power as number), 0)
+    // Calculate renewable and total in a single pass
+    let renewable = 0
+    let total = 0
+    for (const row of currentGen) {
+      const power = row.power as number
+      if (power !== null && !isNaN(power)) {
+        total += power
+        if (renewableFueltechs.has(row.fueltech as string)) {
+          renewable += power
+        }
+      }
+    }
 
-    const total = currentGen.reduce((sum, row) => sum + (row.power as number), 0)
     const renewablePercentage = (renewable / total) * 100
 
     console.log(`Total Generation: ${total.toFixed(0)} MW`)
     console.log(`Renewable Generation: ${renewable.toFixed(0)} MW (${renewablePercentage.toFixed(1)}%)`)
-    console.log(`Non-Renewable Generation: ${(total - renewable).toFixed(0)} MW (${(100 - renewablePercentage).toFixed(1)}%)`)
+    console.log(
+      `Non-Renewable Generation: ${(total - renewable).toFixed(0)} MW (${(100 - renewablePercentage).toFixed(1)}%)`
+    )
 
     // Show top generating fuel types
     console.log("\nCurrent Generation by Fuel Type (Top 5):")
     console.log("=====================================")
-    const byFueltech = latestData
-      .groupBy(["fueltech"], "sum")
-      .sortBy(["power"], false)
-      .select(["fueltech", "power"])
+    const byFueltech = latestData.groupBy(["fueltech"], "sum").sortBy(["power"], false).select(["fueltech", "power"])
 
     console.table(
       byFueltech
@@ -79,9 +86,7 @@ async function main() {
 
     // Calculate average generation for the last 24 hours
     const oneDayAgo = new Date(latestTime - 24 * 60 * 60 * 1000)
-    const last24h = datatable
-      .filter((row) => row.interval >= oneDayAgo)
-      .groupBy(["network_region"], "mean")
+    const last24h = datatable.filter((row) => row.interval >= oneDayAgo).groupBy(["network_region"], "mean")
 
     console.log("\nAverage Generation Last 24 Hours by Region:")
     console.log("=========================================")
