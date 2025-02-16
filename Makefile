@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 projectname = openelectricity-client
-bump=patch
+BUMP=patch
 
 .PHONY: install test test-watch lint format format-check build bump release publish
 
@@ -37,7 +37,7 @@ bump:
 	if [ "$$current_branch" = "develop" ]; then \
 		bump=prepatch; \
 	fi; \
-	npm version $(bump)
+	npm version $(BUMP)
 
 release: format format-check lint test bump build
 	# Push changes and tags
