@@ -14,7 +14,7 @@ async function main() {
 
   try {
     // Get energy data for the NEM network
-    const { response, datatable } = await client.getData("NEM", ["energy"], {
+    const { response, datatable } = await client.getNetworkData("NEM", ["energy"], {
       interval: "1h",
       dateStart: "2024-01-01T00:00:00",
       dateEnd: "2024-01-02T00:00:00",

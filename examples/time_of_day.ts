@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
   try {
     // Fetch power data with fuel technology grouping
-    const { datatable } = await client.getData("NEM", ["power"], {
+    const { datatable } = await client.getNetworkData("NEM", ["power"], {
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),
       interval: "5m",

@@ -54,7 +54,7 @@ const client = new OpenElectricityClient({
 })
 
 // Get per-interval energy data for each fueltech for each region
-const { response, datatable } = await client.getData("NEM", ["energy"], {
+const { response, datatable } = await client.getNetworkData("NEM", ["energy"], {
   interval: "5m",
   dateStart: "2024-01-01T00:00:00",
   dateEnd: "2024-01-02T00:00:00",
@@ -75,7 +75,7 @@ const { response, datatable } = await client.getMarket("NEM", ["price", "demand"
 
 The client supports two types of data:
 
-1. Network Data (`getData`):
+1. Network Data (`getNetworkData`):
    - `power`: Instantaneous power output (MW)
    - `energy`: Energy generated (MWh)
    - `emissions`: CO2 equivalent emissions (tCO2e)
@@ -94,13 +94,12 @@ Queries for network data and market data support groupings. These groupings are 
     - `network` - Group by network (default)
     - `network_region` - Group by network region
 
-Further, `getData` supports secondary groupings:
+Further, `getNetworkData` supports secondary groupings:
 
   1. Secondary groupings (`secondaryGroupings`)
     - `fueltech` - All the core fueltechs
     - `fueltech_group` - Simplified list of fueltechs
     - `renewable` - Group by renewable
-
 
 ### Using the DataTable
 

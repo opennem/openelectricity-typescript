@@ -19,7 +19,7 @@ async function main() {
 
   try {
     // Get power data for the last 3 days
-    const { datatable } = await client.getData("NEM", ["power"], {
+    const { datatable } = await client.getNetworkData("NEM", ["power"], {
       interval: "5m",
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),

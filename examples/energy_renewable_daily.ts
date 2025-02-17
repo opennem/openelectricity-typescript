@@ -19,7 +19,7 @@ async function main() {
 
   try {
     // Fetch energy data with renewable grouping
-    const { datatable } = await client.getData("NEM", ["energy"], {
+    const { datatable } = await client.getNetworkData("NEM", ["energy"], {
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),
       interval: "1d",

@@ -19,7 +19,7 @@ async function main() {
 
   try {
     // Get both emissions and energy data
-    const { datatable } = await client.getData("NEM", ["emissions", "energy"], {
+    const { datatable } = await client.getNetworkData("NEM", ["emissions", "energy"], {
       interval: "1d",
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),

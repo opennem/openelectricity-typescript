@@ -22,7 +22,7 @@ describe("OpenElectricityClient", () => {
     vi.clearAllMocks()
   })
 
-  test("getData should fetch and return network data", async () => {
+  test("getNetworkData should fetch and return network data", async () => {
     const mockResponse = {
       version: "4.0.1",
       created_at: "2024-01-01T00:00:00",
@@ -56,7 +56,7 @@ describe("OpenElectricityClient", () => {
 
     mockFetch.mockImplementationOnce(() => mockFetchResponse(mockResponse))
 
-    const result = await client.getData("NEM", ["energy"], {
+    const result = await client.getNetworkData("NEM", ["energy"], {
       interval: "1h",
       dateStart: "2024-01-01T00:00:00",
       dateEnd: "2024-01-02T00:00:00",
@@ -144,7 +144,7 @@ describe("OpenElectricityClient", () => {
     )
 
     await expect(
-      client.getData("NEM", ["energy"], {
+      client.getNetworkData("NEM", ["energy"], {
         interval: "1h",
       })
     ).rejects.toThrow("API request failed: Bad Request")

@@ -11,8 +11,8 @@ import { createDataTable } from "./datatable"
 import {
   DataMetric,
   IAPIResponse,
-  IDataTimeSeriesParams,
   IMarketTimeSeriesParams,
+  IDataTimeSeriesParams as INetworkDataTimeSeriesParams,
   INetworkTimeSeries,
   ITimeSeriesResponse,
   IUser,
@@ -96,10 +96,10 @@ export class OpenElectricityClient {
    * Get data from the /data/network endpoint
    * Supports power, energy, emissions and market_value metrics
    */
-  async getData(
+  async getNetworkData(
     networkCode: NetworkCode,
     metrics: DataMetric[],
-    params: IDataTimeSeriesParams = {}
+    params: INetworkDataTimeSeriesParams = {}
   ): Promise<ITimeSeriesResponse> {
     debug("Getting network data", { networkCode, metrics, params })
 
