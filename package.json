@@ -1,6 +1,6 @@
 {
   "name": "@openelectricity/client",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "OpenElectricity API Typescript/Javascript client",
   "main": "./dist/node/index.js",
   "module": "./dist/browser/index.js",
