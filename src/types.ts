@@ -47,13 +47,16 @@ export interface INetworkTimeSeries {
 }
 
 // Request Parameters
-export interface ITimeSeriesParams {
+export interface ITimeSeriesParams<G = never> {
   interval?: DataInterval
   dateStart?: string
   dateEnd?: string
   primaryGrouping?: DataPrimaryGrouping
-  secondaryGrouping?: DataSecondaryGrouping
+  secondaryGrouping?: G
 }
+
+export type IMarketTimeSeriesParams = ITimeSeriesParams<never>
+export type IDataTimeSeriesParams = ITimeSeriesParams<DataSecondaryGrouping>
 
 // Response Types
 export interface ITimeSeriesResponse {

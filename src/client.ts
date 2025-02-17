@@ -11,8 +11,9 @@ import { createDataTable } from "./datatable"
 import {
   DataMetric,
   IAPIResponse,
+  IDataTimeSeriesParams,
+  IMarketTimeSeriesParams,
   INetworkTimeSeries,
-  ITimeSeriesParams,
   ITimeSeriesResponse,
   IUser,
   MarketMetric,
@@ -98,7 +99,7 @@ export class OpenElectricityClient {
   async getData(
     networkCode: NetworkCode,
     metrics: DataMetric[],
-    params: ITimeSeriesParams = {}
+    params: IDataTimeSeriesParams = {}
   ): Promise<ITimeSeriesResponse> {
     debug("Getting network data", { networkCode, metrics, params })
 
@@ -126,7 +127,7 @@ export class OpenElectricityClient {
   async getMarket(
     networkCode: NetworkCode,
     metrics: MarketMetric[],
-    params: ITimeSeriesParams = {}
+    params: IMarketTimeSeriesParams = {}
   ): Promise<ITimeSeriesResponse> {
     debug("Getting market data", { networkCode, metrics, params })
 
