@@ -136,7 +136,6 @@ export class OpenElectricityClient {
     if (params.dateStart) queryParams.set("date_start", params.dateStart)
     if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/market/network/${networkCode}${query}`)
