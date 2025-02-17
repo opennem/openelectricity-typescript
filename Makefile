@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 projectname = openelectricity-client
-BUMP=patch
+BUMP ?= patch
 
 .PHONY: install test test-watch lint format format-check build bump release publish
 
@@ -32,12 +32,12 @@ bump:
 		exit 1; \
 	fi
 
-	# if the current branch is develop then the bump level is prepatch
-	current_branch=$$(git rev-parse --abbrev-ref HEAD); \
-	if [ "$$current_branch" = "develop" ]; then \
-		bump=prepatch; \
-	fi; \
-	npm version $(BUMP)
+	# if the current branch is develop then override BUMP to prepatch
+	@if [ "$$(git rev-parse --abbrev-ref HEAD)" = "develop" ]; then \
+		npm version prepatch; \
+	else \
+		npm version $(BUMP); \
+	fi
 
 release: format format-check lint test bump build
 	# Push changes and tags
