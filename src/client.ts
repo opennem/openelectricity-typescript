@@ -11,9 +11,10 @@ import { createDataTable } from "./datatable"
 import {
   DataMetric,
   IAPIResponse,
+  IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
-  IDataTimeSeriesParams as INetworkDataTimeSeriesParams,
   INetworkTimeSeries,
+  INetworkTimeSeriesParams,
   ITimeSeriesResponse,
   IUser,
   MarketMetric,
@@ -99,7 +100,7 @@ export class OpenElectricityClient {
   async getNetworkData(
     networkCode: NetworkCode,
     metrics: DataMetric[],
-    params: INetworkDataTimeSeriesParams = {}
+    params: INetworkTimeSeriesParams = {}
   ): Promise<ITimeSeriesResponse> {
     debug("Getting network data", { networkCode, metrics, params })
 
@@ -113,6 +114,33 @@ export class OpenElectricityClient {
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}${query}`)
+
+    return {
+      response,
+      datatable: createDataTable(response.data),
+    }
+  }
+
+  /**
+   * Get data from the /facility endpoint
+   * Supports power, energy, emissions and market_value metrics
+   */
+  async getFacilityData(
+    networkCode: NetworkCode,
+    facilityCode: string,
+    metrics: DataMetric[],
+    params: IFacilityTimeSeriesParams = {}
+  ): Promise<ITimeSeriesResponse> {
+    debug("Getting facility data", { networkCode, facilityCode, metrics, params })
+
+    const queryParams = new URLSearchParams()
+    metrics.forEach((metric) => queryParams.append("metrics", metric))
+    if (params.interval) queryParams.set("interval", params.interval)
+    if (params.dateStart) queryParams.set("date_start", params.dateStart)
+    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
+    const response = await this.request<INetworkTimeSeries[]>(`/data/facility/${networkCode}/${facilityCode}${query}`)
 
     return {
       response,
@@ -153,11 +181,5 @@ export class OpenElectricityClient {
   async getCurrentUser(): Promise<IAPIResponse<IUser>> {
     debug("Getting current user")
     return this.request<IUser>("/me")
-  }
-
-  async getFacilityEnergy(networkCode: NetworkCode, facilityCode: string): Promise<IAPIResponse<IFacilityEnergy>> {
-    debug("Getting facility energy", { networkCode, facilityCode })
-    const path = `/data/energy/network/${networkCode}/${facilityCode}`
-    return this.request<IFacilityEnergy>(path)
   }
 }

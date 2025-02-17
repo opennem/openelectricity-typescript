@@ -116,6 +116,111 @@ describe("OpenElectricityClient", () => {
     expect(result.datatable?.getRows()).toHaveLength(1)
   })
 
+  test("getFacilityData should fetch and return facility data", async () => {
+    const mockResponse = {
+      version: "4.0.3.dev0",
+      created_at: "2025-02-18T07:27:28+11:00",
+      success: true,
+      data: [
+        {
+          network_code: "NEM",
+          metric: "energy",
+          unit: "MWh",
+          interval: "1d",
+          start: "2025-02-13T00:00:00",
+          end: "2025-02-15T00:00:00",
+          groupings: [],
+          results: [
+            {
+              name: "energy_BANGOWF1",
+              date_start: "2025-02-13T00:00:00",
+              date_end: "2025-02-15T00:00:00",
+              columns: {
+                unit_code: "BANGOWF1",
+              },
+              data: [
+                ["2025-02-12T13:00:00Z", 931.4554],
+                ["2025-02-13T13:00:00Z", 1198.4969],
+                ["2025-02-14T13:00:00Z", 4610.3691],
+              ],
+            },
+            {
+              name: "energy_BANGOWF2",
+              date_start: "2025-02-13T00:00:00",
+              date_end: "2025-02-15T00:00:00",
+              columns: {
+                unit_code: "BANGOWF2",
+              },
+              data: [
+                ["2025-02-12T13:00:00Z", 555.5546],
+                ["2025-02-13T13:00:00Z", 790.281],
+                ["2025-02-14T13:00:00Z", 1745.9334],
+              ],
+            },
+          ],
+          network_timezone_offset: "+10:00",
+        },
+        {
+          network_code: "NEM",
+          metric: "market_value",
+          unit: "$",
+          interval: "1d",
+          start: "2025-02-13T00:00:00",
+          end: "2025-02-15T00:00:00",
+          groupings: [],
+          results: [
+            {
+              name: "market_value_BANGOWF1",
+              date_start: "2025-02-13T00:00:00",
+              date_end: "2025-02-15T00:00:00",
+              columns: {
+                unit_code: "BANGOWF1",
+              },
+              data: [
+                ["2025-02-12T13:00:00Z", 80408.191],
+                ["2025-02-13T13:00:00Z", 127704.6],
+                ["2025-02-14T13:00:00Z", 168568.15],
+              ],
+            },
+            {
+              name: "market_value_BANGOWF2",
+              date_start: "2025-02-13T00:00:00",
+              date_end: "2025-02-15T00:00:00",
+              columns: {
+                unit_code: "BANGOWF2",
+              },
+              data: [
+                ["2025-02-12T13:00:00Z", 46632.327],
+                ["2025-02-13T13:00:00Z", 89052.421],
+                ["2025-02-14T13:00:00Z", 136116.71],
+              ],
+            },
+          ],
+          network_timezone_offset: "+10:00",
+        },
+      ],
+    }
+
+    mockFetch.mockImplementationOnce(() => mockFetchResponse(mockResponse))
+
+    const result = await client.getFacilityData("NEM", "BANGOWF", ["energy", "market_value"], {
+      interval: "1d",
+      dateStart: "2025-02-13T00:00:00",
+      dateEnd: "2025-02-15T00:00:00",
+    })
+
+    expect(result.response.success).toBe(true)
+    expect(result.response.data).toHaveLength(2) // One for each metric
+    expect(result.datatable).toBeDefined()
+    expect(result.datatable?.getRows()).toHaveLength(6) // 3 days × 2 units
+
+    // Check first row data
+    const firstRow = result.datatable?.getRows()[0]
+    expect(firstRow?.unit_code).toBe("BANGOWF1")
+    expect(firstRow?.energy).toBe(931.4554)
+    expect(firstRow?.market_value).toBe(80408.191)
+  })
+
   test("should throw error when API key is missing", () => {
     // Clear environment variables
     const env = globalThis as { process?: { env?: { [key: string]: string | undefined } } }

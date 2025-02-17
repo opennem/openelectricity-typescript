@@ -69,11 +69,18 @@ const { response, datatable } = await client.getMarket("NEM", ["price", "demand"
   dateEnd: "2024-01-02T00:00:00",
   primaryGrouping: "network_region"
 })
+
+// Get facility-specific data
+const { response, datatable } = await client.getFacilityData("NEM", "BANGOWF", ["energy", "market_value"], {
+  interval: "1d",
+  dateStart: "2024-01-01T00:00:00",
+  dateEnd: "2024-01-02T00:00:00"
+})
 ```
 
 ### Available Metrics
 
-The client supports two types of data:
+The client supports three types of data:
 
 1. Network Data (`getNetworkData`):
    - `power`: Instantaneous power output (MW)
@@ -85,6 +92,10 @@ The client supports two types of data:
    - `price`: Spot price ($/MWh)
    - `demand`: Demand (MW)
    - `demand_energy`: Energy demand (MWh)
+
+3. Facility Data (`getFacilityData`):
+   - Supports the same metrics as Network Data
+   - Data is specific to a single facility
 
 ### Available Groupings
 
@@ -128,6 +139,7 @@ Check out the `examples` directory for more detailed examples:
 - `energy_renewable_daily.ts`: Renewable energy analysis
 - `power_latest.ts`: Recent power generation analysis
 - `emission_factor.ts`: Emission factor calculations
+- `facility_data.ts`: Example querying a facility
 
 ## Development
 
