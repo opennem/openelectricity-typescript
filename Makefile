@@ -44,5 +44,5 @@ release: format format-check lint test bump build
 	git push origin $$(git rev-parse --abbrev-ref HEAD)
 	git push origin v$$(node -p "require('./package.json').version")
 
-publish: release
+publish:
 	npm publish
