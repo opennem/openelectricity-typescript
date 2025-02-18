@@ -7,15 +7,6 @@
 
 A TypeScript client for the [OpenElectricity](https://openelectricity.org.au) API, providing access to electricity network data and metrics.
 
-## Features
-
-- Full TypeScript support with comprehensive type definitions
-- Browser and Node.js compatible
-- Built-in data analysis tools with DataTable interface
-- Modern ESM and CommonJS module support
-
-This is the OpenElectricity API Typescript/Javascript client.
-
 > [!NOTE]
 > API key signups are currently waitlisted and will be released gradually.
 
@@ -43,6 +34,12 @@ bun add @openelectricity/client
 ## Usage
 
 ### Basic Usage
+
+Setup your API key in the environment variable `OPENELECTRICITY_API_KEY`.
+
+```bash
+export OPENELECTRICITY_API_KEY=<your-api-key>
+```
 
 ```typescript
 import { OpenElectricityClient } from "@openelectricity/client"
