@@ -14,6 +14,8 @@ To obtain an API key visit [platform.openelectricity.org.au](https://platfrom.op
 
 For documentation visit [docs.openelectricity.org.au](https://docs.openelectricity.org.au/introduction)
 
+The alternative Python client is available at [github.com/openelectricity/openelectricity-python](https://github.com/openelectricity/openelectricity-python)
+
 ## Features
 
 - Full TypeScript support with comprehensive type definitions
