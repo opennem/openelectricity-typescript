@@ -221,11 +221,11 @@ export class OpenElectricityClient {
    */
   async getFacilityData(
     networkCode: NetworkCode,
-    facilityCode: string,
+    facilityCodes: string | string[],
     metrics: DataMetric[],
     params: IFacilityTimeSeriesParams = {}
   ): Promise<ITimeSeriesResponse> {
-    debug("Getting facility data", { networkCode, facilityCode, metrics, params })
+    debug("Getting facility data", { networkCode, facilityCodes, metrics, params })
 
     const queryParams = new URLSearchParams()
     metrics.forEach((metric) => queryParams.append("metrics", metric))
@@ -235,8 +235,15 @@ export class OpenElectricityClient {
     if (dateStart) queryParams.set("date_start", dateStart)
     if (dateEnd) queryParams.set("date_end", dateEnd)
 
+    // Handle single or multiple facility codes
+    if (Array.isArray(facilityCodes)) {
+      facilityCodes.forEach((code) => queryParams.append("facility_code", code))
+    } else {
+      queryParams.append("facility_code", facilityCodes)
+    }
+
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/data/facility/${networkCode}/${facilityCode}${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(`/data/facilities/${networkCode}${query}`)
 
     return {
       response,

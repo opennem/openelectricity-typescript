@@ -27,7 +27,7 @@ async function main(): Promise<void> {
 
   try {
     // Get energy and market value data for BANGOWF facility
-    const { datatable } = await client.getFacilityData("NEM", "BANGOWF", ["energy", "market_value"], {
+    const { datatable } = await client.getFacilityData("NEM", ["BANGOWF"], ["energy", "market_value"], {
       interval: "1d",
       dateStart: formatDate(startDate),
       dateEnd: formatDate(endDate),
