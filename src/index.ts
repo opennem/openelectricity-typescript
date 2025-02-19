@@ -32,7 +32,7 @@ export type {
   // Network and Data Types
   NetworkCode,
   // User Types
-  UserPlan
+  UserPlan,
 } from "./types"
 
 // Export DataTable types
