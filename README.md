@@ -52,7 +52,7 @@ const client = new OpenElectricityClient({
   // baseUrl defaults to https://api.openelectricity.org.au/v4
 })
 
-// Get per-interval energy data for each fueltech for each region
+// Get per-interval energy data for each fueltech for each region (returns DataTable)
 const { response, datatable } = await client.getNetworkData("NEM", ["energy"], {
   interval: "5m",
   dateStart: "2024-01-01T00:00:00",
@@ -61,7 +61,7 @@ const { response, datatable } = await client.getNetworkData("NEM", ["energy"], {
   secondaryGroupings: ['fueltech_group']
 })
 
-// Get hourly price and demand data for each network region
+// Get hourly price and demand data for each network region (returns DataTable)
 const { response, datatable } = await client.getMarket("NEM", ["price", "demand"], {
   interval: "1h",
   dateStart: "2024-01-01T00:00:00",
@@ -69,11 +69,17 @@ const { response, datatable } = await client.getMarket("NEM", ["price", "demand"
   primaryGrouping: "network_region"
 })
 
-// Get facility-specific data
+// Get facility-specific data (returns DataTable)
 const { response, datatable } = await client.getFacilityData("NEM", "BANGOWF", ["energy", "market_value"], {
   interval: "1d",
   dateStart: "2024-01-01T00:00:00",
   dateEnd: "2024-01-02T00:00:00"
+})
+
+// Get all facilities and their units (returns RecordTable)
+const { response, table } = await client.getFacilities({
+  status_id: ["operating"],
+  fueltech_id: ["coal_black", "coal_brown"]
 })
 ```
 
@@ -111,23 +117,42 @@ Further, `getNetworkData` supports secondary groupings:
     - `fueltech_group` - Simplified list of fueltechs
     - `renewable` - Group by renewable
 
-### Using the DataTable
+### Data Tables
 
-The client returns both the raw API response and a DataTable object that provides a pandas-like interface for data analysis:
+The client provides two types of data tables for different use cases:
 
-```typescript
-// Filter rows
-const filtered = datatable.filter(row => row.network_region === "NSW1")
+1. **DataTable** - For time series data (returned by `getNetworkData`, `getMarket`, and `getFacilityData`)
+   ```typescript
+   // Filter rows
+   const filtered = datatable.filter(row => row.network_region === "NSW1")
 
-// Group by columns
-const grouped = datatable.groupBy(["network_region"], "sum")
+   // Group by columns
+   const grouped = datatable.groupBy(["network_region"], "sum")
 
-// Sort by values
-const sorted = datatable.sortBy(["energy"], false)
+   // Sort by values
+   const sorted = datatable.sortBy(["energy"], false)
 
-// Get summary statistics
-const stats = datatable.describe()
-```
+   // Get summary statistics
+   const stats = datatable.describe()
+   ```
+
+2. **RecordTable** - For record-style data like facilities (returned by `getFacilities`)
+   ```typescript
+   // Get all records
+   const records = table.getRecords()
+
+   // Filter records
+   const coalUnits = table.filter(record => record.unit_fueltech?.includes("coal"))
+
+   // Select specific columns
+   const summary = table.select(["facility_name", "unit_code", "unit_capacity"])
+
+   // Sort by capacity
+   const largest = table.sortBy(["unit_capacity"], false)
+
+   // Get unique values
+   const regions = table.unique("facility_region")
+   ```
 
 ### Examples
 

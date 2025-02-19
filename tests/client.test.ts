@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest"
+import { beforeEach, describe, expect, it, test, vi } from "vitest"
 
 import { OpenElectricityClient } from "../src"
 import { INetworkTimeSeries } from "../src/types"
@@ -253,5 +253,200 @@ describe("OpenElectricityClient", () => {
         interval: "1h",
       })
     ).rejects.toThrow("API request failed: Bad Request")
+  })
+
+  describe("getFacilities", () => {
+    it("should get facilities with no filters", async () => {
+      const mockData = {
+        version: "4.0.1",
+        created_at: "2024-01-01T00:00:00",
+        success: true,
+        error: null,
+        data: [
+          {
+            code: "FACILITY1",
+            name: "Test Facility 1",
+            network_id: "NEM",
+            network_region: "NSW1",
+            description: null,
+            units: [
+              {
+                code: "UNIT1",
+                fueltech_id: "coal_black",
+                status_id: "operating",
+                capacity_registered: 500,
+                emissions_factor_co2: 0.9,
+                data_first_seen: "2020-01-01",
+                data_last_seen: "2024-01-01",
+                dispatch_type: "GENERATOR",
+              },
+            ],
+          },
+        ],
+      }
+
+      mockFetch.mockImplementationOnce(() => mockFetchResponse(mockData))
+
+      const result = await client.getFacilities()
+      expect(result.response.success).toBe(true)
+      expect(Array.isArray(result.response.data)).toBe(true)
+      expect(result.table).toBeDefined()
+    })
+
+    it("should get facilities filtered by status", async () => {
+      const mockData = {
+        version: "4.0.1",
+        created_at: "2024-01-01T00:00:00",
+        success: true,
+        error: null,
+        data: [
+          {
+            code: "FACILITY1",
+            name: "Test Facility 1",
+            network_id: "NEM",
+            network_region: "NSW1",
+            description: null,
+            units: [
+              {
+                code: "UNIT1",
+                fueltech_id: "coal_black",
+                status_id: "operating",
+                capacity_registered: 500,
+                emissions_factor_co2: 0.9,
+                data_first_seen: "2020-01-01",
+                data_last_seen: "2024-01-01",
+                dispatch_type: "GENERATOR",
+              },
+            ],
+          },
+        ],
+      }
+
+      mockFetch.mockImplementationOnce(() => mockFetchResponse(mockData))
+
+      const result = await client.getFacilities({
+        status_id: ["operating"],
+      })
+      expect(result.response.success).toBe(true)
+      expect(Array.isArray(result.response.data)).toBe(true)
+      expect(result.table).toBeDefined()
+    })
+
+    it("should get facilities filtered by fueltech", async () => {
+      const mockData = {
+        version: "4.0.1",
+        created_at: "2024-01-01T00:00:00",
+        success: true,
+        error: null,
+        data: [
+          {
+            code: "FACILITY1",
+            name: "Test Facility 1",
+            network_id: "NEM",
+            network_region: "NSW1",
+            description: null,
+            units: [
+              {
+                code: "UNIT1",
+                fueltech_id: "coal_black",
+                status_id: "operating",
+                capacity_registered: 500,
+                emissions_factor_co2: 0.9,
+                data_first_seen: "2020-01-01",
+                data_last_seen: "2024-01-01",
+                dispatch_type: "GENERATOR",
+              },
+            ],
+          },
+        ],
+      }
+
+      mockFetch.mockImplementationOnce(() => mockFetchResponse(mockData))
+
+      const result = await client.getFacilities({
+        fueltech_id: ["coal_black", "coal_brown"],
+      })
+      expect(result.response.success).toBe(true)
+      expect(Array.isArray(result.response.data)).toBe(true)
+      expect(result.table).toBeDefined()
+    })
+
+    it("should get facilities filtered by network", async () => {
+      const mockData = {
+        version: "4.0.1",
+        created_at: "2024-01-01T00:00:00",
+        success: true,
+        error: null,
+        data: [
+          {
+            code: "FACILITY1",
+            name: "Test Facility 1",
+            network_id: "NEM",
+            network_region: "NSW1",
+            description: null,
+            units: [
+              {
+                code: "UNIT1",
+                fueltech_id: "coal_black",
+                status_id: "operating",
+                capacity_registered: 500,
+                emissions_factor_co2: 0.9,
+                data_first_seen: "2020-01-01",
+                data_last_seen: "2024-01-01",
+                dispatch_type: "GENERATOR",
+              },
+            ],
+          },
+        ],
+      }
+
+      mockFetch.mockImplementationOnce(() => mockFetchResponse(mockData))
+
+      const result = await client.getFacilities({
+        network_id: "NEM",
+      })
+      expect(result.response.success).toBe(true)
+      expect(Array.isArray(result.response.data)).toBe(true)
+      expect(result.table).toBeDefined()
+    })
+
+    it("should get facilities filtered by region", async () => {
+      const mockData = {
+        version: "4.0.1",
+        created_at: "2024-01-01T00:00:00",
+        success: true,
+        error: null,
+        data: [
+          {
+            code: "FACILITY1",
+            name: "Test Facility 1",
+            network_id: "NEM",
+            network_region: "NSW1",
+            description: null,
+            units: [
+              {
+                code: "UNIT1",
+                fueltech_id: "coal_black",
+                status_id: "operating",
+                capacity_registered: 500,
+                emissions_factor_co2: 0.9,
+                data_first_seen: "2020-01-01",
+                data_last_seen: "2024-01-01",
+                dispatch_type: "GENERATOR",
+              },
+            ],
+          },
+        ],
+      }
+
+      mockFetch.mockImplementationOnce(() => mockFetchResponse(mockData))
+
+      const result = await client.getFacilities({
+        network_region: "NSW1",
+      })
+      expect(result.response.success).toBe(true)
+      expect(Array.isArray(result.response.data)).toBe(true)
+      expect(result.table).toBeDefined()
+    })
   })
 })

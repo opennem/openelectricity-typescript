@@ -8,9 +8,12 @@
 /// <reference lib="dom" />
 
 import { createDataTable } from "./datatable"
+import { IRecord, RecordTable } from "./recordtable"
 import {
   DataMetric,
   IAPIResponse,
+  IFacility,
+  IFacilityParams,
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
   INetworkTimeSeries,
@@ -29,6 +32,23 @@ export interface IFacilityEnergy {
   interval: string
   start: string
   end: string
+}
+
+export interface IFacilityRecord extends IRecord {
+  facility_code: string
+  facility_name: string
+  facility_network: string
+  facility_region: string
+  facility_description: string | null
+  unit_code: string
+  unit_fueltech: string | null
+  unit_status: string | null
+  unit_capacity: number | null
+  unit_emissions_factor: number | null
+  unit_first_seen: string | null
+  unit_last_seen: string | null
+  unit_dispatch_type: string
+  [key: string]: string | number | boolean | null
 }
 
 export class OpenElectricityClient {
@@ -172,6 +192,54 @@ export class OpenElectricityClient {
     return {
       response,
       datatable: createDataTable(response.data),
+    }
+  }
+
+  /**
+   * Get facilities and their units from the /facilities endpoint
+   * Optionally filter by status, fueltech, network and region
+   */
+  async getFacilities(params: IFacilityParams = {}): Promise<{
+    response: IAPIResponse<IFacility[]>
+    table: RecordTable<IFacilityRecord>
+  }> {
+    debug("Getting facilities", { params })
+
+    const queryParams = new URLSearchParams()
+    if (params.status_id) {
+      params.status_id.forEach((status) => queryParams.append("status_id", status))
+    }
+    if (params.fueltech_id) {
+      params.fueltech_id.forEach((fueltech) => queryParams.append("fueltech_id", fueltech))
+    }
+    if (params.network_id) queryParams.set("network_id", params.network_id)
+    if (params.network_region) queryParams.set("network_region", params.network_region)
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
+    const response = await this.request<IFacility[]>(`/facilities/${query}`)
+
+    // Create a record table with units as rows, including facility information
+    const records: IFacilityRecord[] = response.data.flatMap((facility) =>
+      facility.units.map((unit) => ({
+        facility_code: facility.code,
+        facility_name: facility.name,
+        facility_network: facility.network_id,
+        facility_region: facility.network_region,
+        facility_description: facility.description,
+        unit_code: unit.code,
+        unit_fueltech: unit.fueltech_id,
+        unit_status: unit.status_id,
+        unit_capacity: unit.capacity_registered,
+        unit_emissions_factor: unit.emissions_factor_co2,
+        unit_first_seen: unit.data_first_seen,
+        unit_last_seen: unit.data_last_seen,
+        unit_dispatch_type: unit.dispatch_type,
+      }))
+    )
+
+    return {
+      response,
+      table: new RecordTable<IFacilityRecord>(records),
     }
   }
 
