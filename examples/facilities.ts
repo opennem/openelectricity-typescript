@@ -20,6 +20,7 @@ async function main(): Promise<void> {
   const { table } = await client.getFacilities({
     status_id: ["operating"],
     fueltech_id: ["coal_black", "coal_brown"],
+    network_id: ["NEM"],
   })
 
   // 1. Available columns

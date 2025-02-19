@@ -146,7 +146,7 @@ export interface INetworkTimeSeriesParams extends IMarketTimeSeriesParams {
 export interface IFacilityParams {
   status_id?: UnitStatusType[]
   fueltech_id?: UnitFueltechType[]
-  network_id?: string
+  network_id?: NetworkCode | NetworkCode[]
   network_region?: string
 }
 

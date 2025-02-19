@@ -212,7 +212,13 @@ export class OpenElectricityClient {
     if (params.fueltech_id) {
       params.fueltech_id.forEach((fueltech) => queryParams.append("fueltech_id", fueltech))
     }
-    if (params.network_id) queryParams.set("network_id", params.network_id)
+    if (params.network_id) {
+      if (Array.isArray(params.network_id)) {
+        params.network_id.forEach((network) => queryParams.append("network_id", network))
+      } else {
+        queryParams.append("network_id", params.network_id)
+      }
+    }
     if (params.network_region) queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
