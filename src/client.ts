@@ -311,47 +311,30 @@ export class OpenElectricityClient {
     if (params.network_region) queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    try {
-      const response = await this.request<IFacility[]>(`/facilities/${query}`)
+    const response = await this.request<IFacility[]>(`/facilities/${query}`)
 
-      // Create a record table with units as rows, including facility information
-      const records: IFacilityRecord[] = response.data.flatMap((facility) =>
-        facility.units.map((unit) => ({
-          facility_code: facility.code,
-          facility_name: facility.name,
-          facility_network: facility.network_id,
-          facility_region: facility.network_region,
-          facility_description: facility.description,
-          unit_code: unit.code,
-          unit_fueltech: unit.fueltech_id,
-          unit_status: unit.status_id,
-          unit_capacity: unit.capacity_registered,
-          unit_emissions_factor: unit.emissions_factor_co2,
-          unit_first_seen: unit.data_first_seen,
-          unit_last_seen: unit.data_last_seen,
-          unit_dispatch_type: unit.dispatch_type,
-        }))
-      )
+    // Create a record table with units as rows, including facility information
+    const records: IFacilityRecord[] = response.data.flatMap((facility) =>
+      facility.units.map((unit) => ({
+        facility_code: facility.code,
+        facility_name: facility.name,
+        facility_network: facility.network_id,
+        facility_region: facility.network_region,
+        facility_description: facility.description,
+        unit_code: unit.code,
+        unit_fueltech: unit.fueltech_id,
+        unit_status: unit.status_id,
+        unit_capacity: unit.capacity_registered,
+        unit_emissions_factor: unit.emissions_factor_co2,
+        unit_first_seen: unit.data_first_seen,
+        unit_last_seen: unit.data_last_seen,
+        unit_dispatch_type: unit.dispatch_type,
+      }))
+    )
 
-      return {
-        response,
-        table: new RecordTable<IFacilityRecord>(records),
-      }
-    } catch (error) {
-      // Handle 416 status code (no results)
-      if (error instanceof Error && error.message.includes("416")) {
-        return {
-          response: {
-            version: "4.0.1",
-            created_at: new Date().toISOString(),
-            success: true,
-            error: null,
-            data: [],
-          },
-          table: new RecordTable<IFacilityRecord>([]),
-        }
-      }
-      throw error
+    return {
+      response,
+      table: new RecordTable<IFacilityRecord>(records),
     }
   }
 

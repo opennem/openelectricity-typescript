@@ -2,7 +2,7 @@ import { fail } from "assert"
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { OpenElectricityClient, OpenElectricityError } from "../src/client"
+import { NoDataFound, OpenElectricityClient, OpenElectricityError } from "../src/client"
 import { UnitFueltechType } from "../src/types"
 
 // Mock fetch
@@ -314,15 +314,16 @@ describe("Facilities", () => {
       })
     )
 
-    const result = await client.getFacilities({
-      network_id: ["NEM"],
-      fueltech_id: ["nuclear"], // No nuclear facilities in NEM
-    })
-
-    expect(result.response.success).toBe(true)
-    expect(result.response.data).toHaveLength(0)
-    expect(result.table).toBeDefined()
-    expect(result.table.getRecords()).toHaveLength(0)
+    try {
+      await client.getFacilities({
+        network_id: ["NEM"],
+        fueltech_id: ["nuclear"], // No nuclear facilities in NEM
+      })
+      fail("Expected NoDataFound error to be thrown")
+    } catch (error) {
+      expect(error).toBeInstanceOf(NoDataFound)
+      expect((error as Error).message).toBe("No data found for the requested parameters")
+    }
   })
 
   it("should handle API error responses", async () => {
