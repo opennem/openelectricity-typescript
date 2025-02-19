@@ -3,6 +3,21 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "outDir": "./dist/node"
-  }
+    "moduleResolution": "node",
+    "outDir": "./dist/node",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "esModuleInterop": true,
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "examples"
+  ]
 }

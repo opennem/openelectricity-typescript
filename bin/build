@@ -6,7 +6,7 @@ rm -rf dist
 
 # Build Node.js version
 echo "Building Node.js version..."
-tsc -p tsconfig.json
+tsc -p tsconfig.node.json
 
 # Build browser version using rollup
 echo "Building browser version..."
@@ -19,24 +19,27 @@ cat >dist/package.json <<EOF
   "name": "@openelectricity/client",
   "version": "$(node -p "require('./package.json').version")",
   "description": "OpenElectricity API Typescript/Javascript client",
-  "type": "module",
   "main": "./node/index.js",
   "module": "./browser/index.js",
   "types": "./node/index.d.ts",
   "exports": {
     ".": {
       "types": "./node/index.d.ts",
-      "node": "./node/index.js",
-      "import": "./browser/index.js",
-      "require": "./node/index.js",
-      "default": "./browser/index.js"
+      "node": {
+        "import": "./node/index.js",
+        "require": "./node/index.js"
+      },
+      "browser": "./browser/index.js",
+      "default": "./node/index.js"
     },
     "./datatable": {
       "types": "./node/datatable.d.ts",
-      "node": "./node/datatable.js",
-      "import": "./browser/datatable.js",
-      "require": "./node/datatable.js",
-      "default": "./browser/datatable.js"
+      "node": {
+        "import": "./node/datatable.js",
+        "require": "./node/datatable.js"
+      },
+      "browser": "./browser/datatable.js",
+      "default": "./node/datatable.js"
     }
   },
   "browser": "./browser/index.js",
