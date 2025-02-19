@@ -63,6 +63,13 @@ export class OpenElectricityError extends Error {
   }
 }
 
+export class NoDataFound extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "NoDataFound"
+  }
+}
+
 /**
  * Convert a date string to timezone naive format and warn if timezone information is present
  */
@@ -137,7 +144,7 @@ export class OpenElectricityClient {
 
     // Special handling for 416 (no results)
     if (response.status === 416) {
-      throw new Error("416")
+      throw new NoDataFound("No data found for the requested parameters")
     }
 
     // Special handling for 403 (permission denied)
@@ -244,7 +251,6 @@ export class OpenElectricityClient {
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/data/facilities/${networkCode}${query}`)
-
     return {
       response,
       datatable: createDataTable(response.data),
