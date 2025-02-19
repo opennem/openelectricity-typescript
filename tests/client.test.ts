@@ -244,7 +244,15 @@ describe("OpenElectricityClient", () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: false,
+        status: 400,
         statusText: "Bad Request",
+        json: () =>
+          Promise.resolve({
+            version: "4.0.1",
+            response_status: "ERROR",
+            error: "Bad Request",
+            success: false,
+          }),
       })
     )
 
@@ -252,7 +260,7 @@ describe("OpenElectricityClient", () => {
       client.getNetworkData("NEM", ["energy"], {
         interval: "1h",
       })
-    ).rejects.toThrow("API request failed: Bad Request")
+    ).rejects.toThrow("Bad Request")
   })
 
   describe("getFacilities", () => {

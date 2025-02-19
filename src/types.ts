@@ -72,6 +72,13 @@ export interface IFacility {
 }
 
 // Base API Response
+export interface IAPIErrorResponse {
+  version: string
+  response_status: "ERROR"
+  error: string
+  success: false
+}
+
 export interface IAPIResponse<T> {
   version: string
   created_at: string
@@ -156,10 +163,23 @@ export interface ITimeSeriesResponse {
   datatable?: DataTable
 }
 
+export interface IEmptyFacilityResponse {
+  response: {
+    version: string
+    created_at: string
+    success: true
+    error: null
+    data: []
+  }
+  table: RecordTable<IFacilityRecord>
+}
+
 export interface IFacilityResponse {
   response: IAPIResponse<IFacility[]>
   table: RecordTable<IFacilityRecord>
 }
+
+export type FacilityResponse = IFacilityResponse | IEmptyFacilityResponse
 
 // User Types
 export type UserPlan = "BASIC" | "PRO" | "ENTERPRISE"

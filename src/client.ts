@@ -11,6 +11,8 @@ import { createDataTable } from "./datatable"
 import { IRecord, RecordTable } from "./recordtable"
 import {
   DataMetric,
+  FacilityResponse,
+  IAPIErrorResponse,
   IAPIResponse,
   IFacility,
   IFacilityParams,
@@ -49,6 +51,16 @@ export interface IFacilityRecord extends IRecord {
   unit_last_seen: string | null
   unit_dispatch_type: string
   [key: string]: string | number | boolean | null
+}
+
+export class OpenElectricityError extends Error {
+  constructor(
+    message: string,
+    public response?: IAPIErrorResponse
+  ) {
+    super(message)
+    this.name = "OpenElectricityError"
+  }
 }
 
 export class OpenElectricityClient {
@@ -101,6 +113,34 @@ export class OpenElectricityClient {
       statusText: response.statusText,
     })
 
+    // Special handling for 416 (no results)
+    if (response.status === 416) {
+      throw new Error("416")
+    }
+
+    // Special handling for 403 (permission denied)
+    if (response.status === 403) {
+      debug("Permission denied", {
+        status: response.status,
+        statusText: response.statusText,
+      })
+      throw new Error("Permission denied. Check API key or your access level")
+    }
+
+    const data = await response.json()
+
+    // Handle API error responses (4xx errors)
+    if (!response.ok && response.status < 500) {
+      debug("Request failed with API error", {
+        status: response.status,
+        data,
+      })
+      if (this.isAPIErrorResponse(data)) {
+        throw new OpenElectricityError(data.error, data)
+      }
+    }
+
+    // Handle other non-OK responses
     if (!response.ok) {
       debug("Request failed", {
         status: response.status,
@@ -109,8 +149,18 @@ export class OpenElectricityClient {
       throw new Error(`API request failed: ${response.statusText}`)
     }
 
-    const data = (await response.json()) as IAPIResponse<T>
-    return data
+    return data as IAPIResponse<T>
+  }
+
+  private isAPIErrorResponse(data: unknown): data is IAPIErrorResponse {
+    return (
+      typeof data === "object" &&
+      data !== null &&
+      "response_status" in data &&
+      data.response_status === "ERROR" &&
+      "error" in data &&
+      typeof data.error === "string"
+    )
   }
 
   /**
@@ -198,11 +248,9 @@ export class OpenElectricityClient {
   /**
    * Get facilities and their units from the /facilities endpoint
    * Optionally filter by status, fueltech, network and region
+   * Returns empty result if no facilities match the filters (416 status code)
    */
-  async getFacilities(params: IFacilityParams = {}): Promise<{
-    response: IAPIResponse<IFacility[]>
-    table: RecordTable<IFacilityRecord>
-  }> {
+  async getFacilities(params: IFacilityParams = {}): Promise<FacilityResponse> {
     debug("Getting facilities", { params })
 
     const queryParams = new URLSearchParams()
@@ -222,30 +270,47 @@ export class OpenElectricityClient {
     if (params.network_region) queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<IFacility[]>(`/facilities/${query}`)
+    try {
+      const response = await this.request<IFacility[]>(`/facilities/${query}`)
 
-    // Create a record table with units as rows, including facility information
-    const records: IFacilityRecord[] = response.data.flatMap((facility) =>
-      facility.units.map((unit) => ({
-        facility_code: facility.code,
-        facility_name: facility.name,
-        facility_network: facility.network_id,
-        facility_region: facility.network_region,
-        facility_description: facility.description,
-        unit_code: unit.code,
-        unit_fueltech: unit.fueltech_id,
-        unit_status: unit.status_id,
-        unit_capacity: unit.capacity_registered,
-        unit_emissions_factor: unit.emissions_factor_co2,
-        unit_first_seen: unit.data_first_seen,
-        unit_last_seen: unit.data_last_seen,
-        unit_dispatch_type: unit.dispatch_type,
-      }))
-    )
+      // Create a record table with units as rows, including facility information
+      const records: IFacilityRecord[] = response.data.flatMap((facility) =>
+        facility.units.map((unit) => ({
+          facility_code: facility.code,
+          facility_name: facility.name,
+          facility_network: facility.network_id,
+          facility_region: facility.network_region,
+          facility_description: facility.description,
+          unit_code: unit.code,
+          unit_fueltech: unit.fueltech_id,
+          unit_status: unit.status_id,
+          unit_capacity: unit.capacity_registered,
+          unit_emissions_factor: unit.emissions_factor_co2,
+          unit_first_seen: unit.data_first_seen,
+          unit_last_seen: unit.data_last_seen,
+          unit_dispatch_type: unit.dispatch_type,
+        }))
+      )
 
-    return {
-      response,
-      table: new RecordTable<IFacilityRecord>(records),
+      return {
+        response,
+        table: new RecordTable<IFacilityRecord>(records),
+      }
+    } catch (error) {
+      // Handle 416 status code (no results)
+      if (error instanceof Error && error.message.includes("416")) {
+        return {
+          response: {
+            version: "4.0.1",
+            created_at: new Date().toISOString(),
+            success: true,
+            error: null,
+            data: [],
+          },
+          table: new RecordTable<IFacilityRecord>([]),
+        }
+      }
+      throw error
     }
   }
 

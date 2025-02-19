@@ -1,6 +1,8 @@
+import { fail } from "assert"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { OpenElectricityClient } from "../src/client"
+import { OpenElectricityClient, OpenElectricityError } from "../src/client"
 import { UnitFueltechType } from "../src/types"
 
 // Mock fetch
@@ -301,6 +303,74 @@ describe("Facilities", () => {
     result.response.data.forEach((facility) => {
       expect(facility.network_region).toBe("NSW1")
     })
+  })
+
+  it("should handle no results (416 status code)", async () => {
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        status: 416,
+        statusText: "Requested Range Not Satisfiable",
+      })
+    )
+
+    const result = await client.getFacilities({
+      network_id: ["NEM"],
+      fueltech_id: ["nuclear"], // No nuclear facilities in NEM
+    })
+
+    expect(result.response.success).toBe(true)
+    expect(result.response.data).toHaveLength(0)
+    expect(result.table).toBeDefined()
+    expect(result.table.getRecords()).toHaveLength(0)
+  })
+
+  it("should handle API error responses", async () => {
+    const errorResponse = {
+      version: "4.0.4.dev2",
+      response_status: "ERROR",
+      error: "Date start must be timezone naive and in network time",
+      success: false,
+    }
+
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve(errorResponse),
+      })
+    )
+
+    try {
+      await client.getFacilities()
+      fail("Expected error to be thrown")
+    } catch (error) {
+      expect(error).toBeInstanceOf(OpenElectricityError)
+      const apiError = error as OpenElectricityError
+      expect(apiError.message).toBe("Date start must be timezone naive and in network time")
+      expect(apiError.response).toEqual(errorResponse)
+    }
+  })
+
+  it("should handle 403 permission denied errors", async () => {
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+      })
+    )
+
+    try {
+      await client.getFacilities()
+      fail("Expected error to be thrown")
+    } catch (error) {
+      if (error instanceof Error) {
+        expect(error.message).toBe("Permission denied. Check API key or your access level")
+      } else {
+        fail("Expected error to be an instance of Error")
+      }
+    }
   })
 
   it("should create a table with facility and unit information", async () => {
