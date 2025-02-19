@@ -63,6 +63,28 @@ export class OpenElectricityError extends Error {
   }
 }
 
+/**
+ * Convert a date string to timezone naive format and warn if timezone information is present
+ */
+function toTimezoneNaiveDate(date: string | undefined, paramName: string): string | undefined {
+  if (!date) return undefined
+
+  // Check if the date has timezone information
+  const hasTimezone = date.includes("Z") || /[+-]\d{2}:?\d{2}$/.test(date)
+  if (hasTimezone) {
+    debug(
+      `Warning: ${paramName} contains timezone information which will be stripped. The API requires timezone naive dates.`,
+      {
+        original: date,
+        stripped: date.split(/[Z+-]/)[0],
+      }
+    )
+    return date.split(/[Z+-]/)[0]
+  }
+
+  return date
+}
+
 export class OpenElectricityClient {
   private baseUrl: string
   private apiKey: string
@@ -177,8 +199,10 @@ export class OpenElectricityClient {
     const queryParams = new URLSearchParams()
     metrics.forEach((metric) => queryParams.append("metrics", metric))
     if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+    const dateStart = toTimezoneNaiveDate(params.dateStart, "dateStart")
+    const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
+    if (dateStart) queryParams.set("date_start", dateStart)
+    if (dateEnd) queryParams.set("date_end", dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
 
@@ -206,8 +230,10 @@ export class OpenElectricityClient {
     const queryParams = new URLSearchParams()
     metrics.forEach((metric) => queryParams.append("metrics", metric))
     if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+    const dateStart = toTimezoneNaiveDate(params.dateStart, "dateStart")
+    const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
+    if (dateStart) queryParams.set("date_start", dateStart)
+    if (dateEnd) queryParams.set("date_end", dateEnd)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/data/facility/${networkCode}/${facilityCode}${query}`)
@@ -232,8 +258,10 @@ export class OpenElectricityClient {
     const queryParams = new URLSearchParams()
     metrics.forEach((metric) => queryParams.append("metrics", metric))
     if (params.interval) queryParams.set("interval", params.interval)
-    if (params.dateStart) queryParams.set("date_start", params.dateStart)
-    if (params.dateEnd) queryParams.set("date_end", params.dateEnd)
+    const dateStart = toTimezoneNaiveDate(params.dateStart, "dateStart")
+    const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
+    if (dateStart) queryParams.set("date_start", dateStart)
+    if (dateEnd) queryParams.set("date_end", dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""

@@ -7,9 +7,9 @@
  * - Handling multiple units within a facility
  */
 
-import { OpenElectricityClient } from "../src"
+/* global console, process */
 
-/* eslint-disable no-console */
+import { OpenElectricityClient } from "../src"
 
 async function main(): Promise<void> {
   // Initialize client
@@ -20,12 +20,17 @@ async function main(): Promise<void> {
   const startDate = new Date(endDate)
   startDate.setDate(startDate.getDate() - 7)
 
+  // Format dates as timezone-naive (YYYY-MM-DDTHH:mm:ss)
+  const formatDate = (date: Date): string => {
+    return date.toISOString().split(".")[0] // Remove milliseconds and timezone
+  }
+
   try {
     // Get energy and market value data for BANGOWF facility
     const { datatable } = await client.getFacilityData("NEM", "BANGOWF", ["energy", "market_value"], {
       interval: "1d",
-      dateStart: startDate.toISOString(),
-      dateEnd: endDate.toISOString(),
+      dateStart: formatDate(startDate),
+      dateEnd: formatDate(endDate),
     })
 
     if (!datatable) {
@@ -33,8 +38,8 @@ async function main(): Promise<void> {
     }
 
     // Display the daily data by unit
-    console.log("\nDaily Energy and Market Value for Bango Wind Farm Units:")
-    console.log("=================================================")
+    console.warn("\nDaily Energy and Market Value for Bango Wind Farm Units:")
+    console.warn("=================================================")
 
     const formattedData = datatable.getRows().map((row) => ({
       date: (row.interval as Date).toISOString().split("T")[0],
@@ -44,7 +49,7 @@ async function main(): Promise<void> {
       avg_price: "$" + ((row.market_value as number) / (row.energy as number)).toFixed(2) + "/MWh",
     }))
 
-    console.table(formattedData)
+    console.warn(JSON.stringify(formattedData, null, 2))
 
     // Calculate and display totals by unit
     const totalsByUnit = datatable.getRows().reduce(
@@ -60,13 +65,13 @@ async function main(): Promise<void> {
       {} as Record<string, { energy: number; market_value: number }>
     )
 
-    console.log("\nWeekly Totals by Unit:")
-    console.log("====================")
+    console.warn("\nWeekly Totals by Unit:")
+    console.warn("====================")
     Object.entries(totalsByUnit).forEach(([unit, totals]) => {
-      console.log(`\nUnit: ${unit}`)
-      console.log(`Total Energy: ${totals.energy.toFixed(2)} MWh`)
-      console.log(`Total Market Value: $${totals.market_value.toFixed(2)}`)
-      console.log(`Average Price: $${(totals.market_value / totals.energy).toFixed(2)}/MWh`)
+      console.warn(`\nUnit: ${unit}`)
+      console.warn(`Total Energy: ${totals.energy.toFixed(2)} MWh`)
+      console.warn(`Total Market Value: $${totals.market_value.toFixed(2)}`)
+      console.warn(`Average Price: $${(totals.market_value / totals.energy).toFixed(2)}/MWh`)
     })
 
     // Calculate facility totals
@@ -78,11 +83,11 @@ async function main(): Promise<void> {
       { energy: 0, market_value: 0 }
     )
 
-    console.log("\nFacility Totals:")
-    console.log("================")
-    console.log(`Total Energy: ${facilityTotals.energy.toFixed(2)} MWh`)
-    console.log(`Total Market Value: $${facilityTotals.market_value.toFixed(2)}`)
-    console.log(`Average Price: $${(facilityTotals.market_value / facilityTotals.energy).toFixed(2)}/MWh`)
+    console.warn("\nFacility Totals:")
+    console.warn("================")
+    console.warn(`Total Energy: ${facilityTotals.energy.toFixed(2)} MWh`)
+    console.warn(`Total Market Value: $${facilityTotals.market_value.toFixed(2)}`)
+    console.warn(`Average Price: $${(facilityTotals.market_value / facilityTotals.energy).toFixed(2)}/MWh`)
   } catch (error) {
     if (error instanceof Error) {
       console.error("API Error:", error.message)
