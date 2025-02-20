@@ -32,7 +32,7 @@ export type {
   // Network and Data Types
   NetworkCode,
   // User Types
-  UserPlan,
+  UserPlan
 } from "./types"
 
 // Export DataTable types
@@ -40,3 +40,13 @@ export type { IDataTableRow, IDescribeResult } from "./datatable"
 
 // Export DataTable class
 export { DataTable } from "./datatable"
+
+// Export datetime utilities
+export {
+  getLastCompleteInterval,
+  getNetworkTimezone,
+  getNetworkTimezoneOffset,
+  isAware,
+  makeAware,
+  stripTimezone
+} from "./datetime"

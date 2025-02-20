@@ -22,6 +22,7 @@ The alternative Python client is available at [github.com/openelectricity/openel
 - Browser and Node.js compatible
 - Built-in data analysis tools with DataTable interface
 - Modern ESM and CommonJS module support
+- Timezone-aware datetime utilities for handling network-specific times
 
 ## Installation
 
@@ -81,6 +82,38 @@ const { response, table } = await client.getFacilities({
   status_id: ["operating"],
   fueltech_id: ["coal_black", "coal_brown"]
 })
+```
+
+### Datetime Utilities
+
+The client provides utilities for handling network-specific timezones and datetime operations:
+
+```typescript
+import {
+  isAware,
+  makeAware,
+  stripTimezone,
+  getLastCompleteInterval,
+  getNetworkTimezone,
+} from "@openelectricity/client"
+
+// Check if a date string has timezone information
+isAware("2024-01-01T00:00:00+10:00") // true
+isAware("2024-01-01T00:00:00") // false
+
+// Add network timezone information to a date
+makeAware("2024-01-01T00:00:00", "NEM") // "2024-01-01T00:00:00+10:00"
+makeAware("2024-01-01T00:00:00", "WEM") // "2024-01-01T00:00:00+08:00"
+
+// Remove timezone information from a date string
+stripTimezone("2024-01-01T00:00:00+10:00") // "2024-01-01T00:00:00"
+
+// Get the last complete 5-minute interval for a network
+getLastCompleteInterval("NEM") // Returns the last complete 5-minute interval in AEST
+
+// Get timezone offset for a network (in hours)
+getNetworkTimezone("NEM") // Returns 10 (AEST/UTC+10)
+getNetworkTimezone("WEM") // Returns 8 (AWST/UTC+8)
 ```
 
 ### Available Metrics

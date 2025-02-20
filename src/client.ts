@@ -8,6 +8,7 @@
 /// <reference lib="dom" />
 
 import { createDataTable } from "./datatable"
+import { isAware, stripTimezone } from "./datetime"
 import { IRecord, RecordTable } from "./recordtable"
 import {
   DataMetric,
@@ -72,21 +73,23 @@ export class NoDataFound extends Error {
 
 /**
  * Convert a date string to timezone naive format and warn if timezone information is present
+ *
+ * @param date The date string to process
+ * @param paramName The name of the parameter (for warning message)
+ * @returns The timezone naive date string
  */
 function toTimezoneNaiveDate(date: string | undefined, paramName: string): string | undefined {
   if (!date) return undefined
 
-  // Check if the date has timezone information
-  const hasTimezone = date.includes("Z") || /[+-]\d{2}:?\d{2}$/.test(date)
-  if (hasTimezone) {
+  if (isAware(date)) {
     debug(
-      `Warning: ${paramName} contains timezone information which will be stripped. The API requires timezone naive dates.`,
+      `Warning: ${paramName} contains timezone information which will be stripped. The API requires timezone naive dates in network time.`,
       {
         original: date,
-        stripped: date.split(/[Z+-]/)[0],
+        stripped: stripTimezone(date),
       }
     )
-    return date.split(/[Z+-]/)[0]
+    return stripTimezone(date)
   }
 
   return date
@@ -195,6 +198,10 @@ export class OpenElectricityClient {
   /**
    * Get data from the /data/network endpoint
    * Supports power, energy, emissions and market_value metrics
+   *
+   * @remarks
+   * dateStart and dateEnd should be timezone naive dates in network time.
+   * If timezone information is provided, it will be stripped and a warning will be logged.
    */
   async getNetworkData(
     networkCode: NetworkCode,
@@ -225,6 +232,10 @@ export class OpenElectricityClient {
   /**
    * Get data from the /facility endpoint
    * Supports power, energy, emissions and market_value metrics
+   *
+   * @remarks
+   * dateStart and dateEnd should be timezone naive dates in network time.
+   * If timezone information is provided, it will be stripped and a warning will be logged.
    */
   async getFacilityData(
     networkCode: NetworkCode,
@@ -260,6 +271,10 @@ export class OpenElectricityClient {
   /**
    * Get data from the /market/network endpoint
    * Supports price, demand and demand_energy metrics
+   *
+   * @remarks
+   * dateStart and dateEnd should be timezone naive dates in network time.
+   * If timezone information is provided, it will be stripped and a warning will be logged.
    */
   async getMarket(
     networkCode: NetworkCode,
