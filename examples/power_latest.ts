@@ -4,11 +4,12 @@
  * - Fetching recent power data
  * - Analyzing generation mix
  * - Calculating regional statistics
+ *
  */
 
 import { OpenElectricityClient } from "../src"
 
-async function main() {
+async function main(): Promise<void> {
   // Initialize client
   const client = new OpenElectricityClient()
 
