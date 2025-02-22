@@ -1,5 +1,5 @@
 {
-  "name": "@openelectricity/client",
+  "name": "openelectricity",
   "version": "0.4.0",
   "description": "OpenElectricity API Typescript/Javascript client",
   "main": "./dist/node/index.js",

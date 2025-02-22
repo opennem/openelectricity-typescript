@@ -16,7 +16,7 @@ rollup -c rollup.config.js
 echo "Creating dist package.json..."
 cat >dist/package.json <<EOF
 {
-  "name": "@openelectricity/client",
+  "name": "openelectricity",
   "version": "$(node -p "require('./package.json').version")",
   "description": "OpenElectricity API Typescript/Javascript client",
   "main": "./node/index.js",

@@ -27,11 +27,11 @@ The alternative Python client is available at [github.com/openelectricity/openel
 ## Installation
 
 ```bash
-npm install @openelectricity/client
+npm install openelectricity
 # or
-yarn add @openelectricity/client
+yarn add openelectricity
 # or
-bun add @openelectricity/client
+bun add openelectricity
 ```
 
 ## Usage
@@ -45,7 +45,7 @@ export OPENELECTRICITY_API_KEY=<your-api-key>
 ```
 
 ```typescript
-import { OpenElectricityClient } from "@openelectricity/client"
+import { OpenElectricityClient } from "openelectricity"
 
 // Initialize client
 const client = new OpenElectricityClient({
@@ -95,7 +95,7 @@ import {
   stripTimezone,
   getLastCompleteInterval,
   getNetworkTimezone,
-} from "@openelectricity/client"
+} from "openelectricity"
 
 // Check if a date string has timezone information
 isAware("2024-01-01T00:00:00+10:00") // true

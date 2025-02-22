@@ -6,7 +6,7 @@
  * - Checking API limits
  */
 
-import { OpenElectricityClient } from "@openelectricity/client"
+import { OpenElectricityClient } from "openelectricity"
 
 async function main(): Promise<void> {
   // Initialize client

@@ -26,10 +26,10 @@
       "@/*": [
         "src/*"
       ],
-      "@openelectricity/client": [
+      "openelectricity": [
         "src/index.ts"
       ],
-      "@openelectricity/client/*": [
+      "openelectricity/*": [
         "src/*"
       ]
     }
