@@ -3,6 +3,7 @@
  * Provides a pandas/polars-like interface for time series data
  */
 
+import { createNetworkDate } from "./datetime"
 import { INetworkTimeSeries } from "./types"
 
 export interface IDataTableRow {
@@ -449,23 +450,4 @@ export class DataTable {
  */
 export function createDataTable(data: INetworkTimeSeries[]): DataTable {
   return DataTable.fromNetworkTimeSeries(data)
-}
-
-/**
- * Creates a date with the correct network timezone
- */
-function createNetworkDate(isoString: string, timezoneOffset: string): Date {
-  // Parse the ISO string into a Date object
-  const date = new Date(isoString)
-
-  // Get the timezone offset in minutes
-  const offsetMatch = timezoneOffset.match(/([+-])(\d{2}):(\d{2})/)
-  if (!offsetMatch) return date
-
-  const [, sign, hours, minutes] = offsetMatch
-  const offsetMinutes = (parseInt(hours) * 60 + parseInt(minutes)) * (sign === "+" ? 1 : -1)
-
-  // Adjust the date by the timezone offset
-  const utcTime = date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
-  return new Date(utcTime)
 }

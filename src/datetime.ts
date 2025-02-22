@@ -121,3 +121,22 @@ export function getLastCompleteInterval(network: NetworkCode): string {
   // Format without timezone information as required by API
   return lastInterval.format("YYYY-MM-DDTHH:mm:ss")
 }
+
+/**
+ * Creates a date with the correct network timezone
+ */
+export function createNetworkDate(isoString: string, timezoneOffset: string): Date {
+  // Parse the ISO string into a Date object
+  const date = new Date(isoString)
+
+  // Get the timezone offset in minutes
+  const offsetMatch = timezoneOffset.match(/([+-])(\d{2}):(\d{2})/)
+  if (!offsetMatch) return date
+
+  const [, sign, hours, minutes] = offsetMatch
+  const offsetMinutes = (parseInt(hours) * 60 + parseInt(minutes)) * (sign === "+" ? 1 : -1)
+
+  // Adjust the date by the timezone offset
+  const utcTime = date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
+  return new Date(utcTime)
+}
