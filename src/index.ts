@@ -5,7 +5,7 @@
 
 // Export the client
 export * from "./client"
-export { OpenElectricityClient as default } from "./client"
+export { OpenElectricityClient as default, OpenElectricityClient } from "./client"
 
 // Export all types
 export type {
@@ -32,7 +32,7 @@ export type {
   // Network and Data Types
   NetworkCode,
   // User Types
-  UserPlan
+  UserPlan,
 } from "./types"
 
 // Export DataTable types
@@ -48,5 +48,5 @@ export {
   getNetworkTimezoneOffset,
   isAware,
   makeAware,
-  stripTimezone
+  stripTimezone,
 } from "./datetime"
