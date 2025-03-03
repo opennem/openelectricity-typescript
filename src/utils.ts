@@ -2,8 +2,40 @@
  * Utility functions for OpenElectricity client
  */
 
-// eslint-disable-next-line no-undef
-const isDevelopment = process?.env?.NODE_ENV === "development"
+// Declare global variables to avoid TypeScript errors
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+declare const window: { location?: { hostname: string } } | undefined
+declare const console: { log: (message: string, ...args: unknown[]) => void }
+
+/**
+ * Safely detect if we're in a development environment
+ * Works in both Node.js and browser environments
+ */
+const isDevelopment = ((): boolean => {
+  // Check for Node.js environment
+  try {
+    if (typeof process !== "undefined" && process?.env?.NODE_ENV === "development") {
+      return true
+    }
+
+    // Check for browser development environments
+    if (typeof window !== "undefined" && window?.location?.hostname) {
+      const hostname = window.location.hostname
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.includes("dev.") ||
+        hostname.includes(".local")
+      ) {
+        return true
+      }
+    }
+  } catch {
+    // Ignore any errors
+  }
+
+  return false
+})()
 
 /**
  * Debug logging function
@@ -11,7 +43,6 @@ const isDevelopment = process?.env?.NODE_ENV === "development"
  */
 export function debug(message: string, data?: unknown): void {
   if (isDevelopment) {
-    // eslint-disable-next-line no-undef, no-console
     console.log(`[OpenElectricity] ${message}`, data ? data : "")
   }
 }
