@@ -26,6 +26,9 @@ cat >dist/package.json <<EOF
     "type": "git",
     "url": "https://github.com/opennem/openelectricity-typescript.git"
   },
+  "dependencies": {
+    "dayjs": "^1.11.13"
+  },
   "main": "./node/index.js",
   "module": "./browser/index.js",
   "types": "./node/index.d.ts",
