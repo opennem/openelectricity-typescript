@@ -2,6 +2,16 @@
   "name": "openelectricity",
   "version": "0.4.2",
   "description": "OpenElectricity API Typescript/Javascript client",
+  "author": "OpenElectricity <enquiries@openelectricity.org.au>",
+  "license": "MIT",
+  "homepage": "https://github.com/opennem/openelectricity-typescript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opennem/openelectricity-typescript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/opennem/openelectricity-typescript/issues"
+  },
   "main": "./dist/node/index.js",
   "module": "./dist/browser/index.js",
   "types": "./dist/node/index.d.ts",
