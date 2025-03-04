@@ -31,8 +31,12 @@ export type {
   Metric,
   // Network and Data Types
   NetworkCode,
+  UnitDispatchType,
+  UnitFueltechGroupType,
+  UnitFueltechType,
+  UnitStatusType,
   // User Types
-  UserPlan,
+  UserPlan
 } from "./types"
 
 // Export DataTable types
@@ -48,5 +52,5 @@ export {
   getNetworkTimezoneOffset,
   isAware,
   makeAware,
-  stripTimezone,
+  stripTimezone
 } from "./datetime"

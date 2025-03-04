@@ -219,6 +219,10 @@ export class OpenElectricityClient {
     if (dateEnd) queryParams.set("date_end", dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
     if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
+    if (params.network_region) queryParams.set("network_region", params.network_region)
+    if (params.fueltech) params.fueltech.forEach((fueltech) => queryParams.append("fueltech", fueltech))
+    if (params.fueltech_group)
+      params.fueltech_group.forEach((fueltech_group) => queryParams.append("fueltech_group", fueltech_group))
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}${query}`)
@@ -291,6 +295,7 @@ export class OpenElectricityClient {
     if (dateStart) queryParams.set("date_start", dateStart)
     if (dateEnd) queryParams.set("date_end", dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
+    if (params.network_region) queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<INetworkTimeSeries[]>(`/market/network/${networkCode}${query}`)

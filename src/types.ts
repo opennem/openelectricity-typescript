@@ -20,7 +20,6 @@ export type Metric = DataMetric | MarketMetric
 // Facility Types
 export type UnitStatusType = "committed" | "operating" | "retired"
 export type UnitFueltechType =
-  | "battery"
   | "battery_charging"
   | "battery_discharging"
   | "bioenergy_biogas"
@@ -39,15 +38,21 @@ export type UnitFueltechType =
   | "solar_thermal"
   | "solar_utility"
   | "nuclear"
-  | "other"
-  | "solar"
   | "wind"
   | "wind_offshore"
-  | "imports"
-  | "exports"
   | "interconnector"
-  | "aggregator_vpp"
-  | "aggregator_dr"
+
+export type UnitFueltechGroupType =
+  | "coal"
+  | "gas"
+  | "wind"
+  | "solar"
+  | "battery_charging"
+  | "battery_discharging"
+  | "hydro"
+  | "distillate"
+  | "bioenergy"
+  | "pumps"
 
 export type UnitDispatchType = "GENERATOR" | "LOAD" | "NETWORK" | "INTERCONNECTOR"
 
@@ -144,10 +149,13 @@ export interface IFacilityTimeSeriesParams {
 
 export interface IMarketTimeSeriesParams extends IFacilityTimeSeriesParams {
   primaryGrouping?: DataPrimaryGrouping
+  network_region?: string
 }
 
 export interface INetworkTimeSeriesParams extends IMarketTimeSeriesParams {
   secondaryGrouping?: DataSecondaryGrouping
+  fueltech?: UnitFueltechType[]
+  fueltech_group?: UnitFueltechGroupType[]
 }
 
 export interface IFacilityParams {
