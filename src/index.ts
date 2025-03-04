@@ -36,7 +36,7 @@ export type {
   UnitFueltechType,
   UnitStatusType,
   // User Types
-  UserPlan
+  UserPlan,
 } from "./types"
 
 // Export DataTable types
@@ -52,5 +52,5 @@ export {
   getNetworkTimezoneOffset,
   isAware,
   makeAware,
-  stripTimezone
+  stripTimezone,
 } from "./datetime"
