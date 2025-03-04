@@ -19,6 +19,13 @@ cat >dist/package.json <<EOF
   "name": "openelectricity",
   "version": "$(node -p "require('./package.json').version")",
   "description": "OpenElectricity API Typescript/Javascript client",
+  "author": "OpenElectricity <enquiries@openelectricity.org.au>",
+  "license": "MIT",
+  "homepage": "https://github.com/opennem/openelectricity-typescript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opennem/openelectricity-typescript.git"
+  },
   "main": "./node/index.js",
   "module": "./browser/index.js",
   "types": "./node/index.d.ts",
