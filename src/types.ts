@@ -153,7 +153,7 @@ export interface IMarketTimeSeriesParams extends IFacilityTimeSeriesParams {
 }
 
 export interface INetworkTimeSeriesParams extends IMarketTimeSeriesParams {
-  secondaryGrouping?: DataSecondaryGrouping
+  secondaryGrouping?: DataSecondaryGrouping[]
   fueltech?: UnitFueltechType[]
   fueltech_group?: UnitFueltechGroupType[]
 }
