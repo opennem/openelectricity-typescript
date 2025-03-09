@@ -218,7 +218,10 @@ export class OpenElectricityClient {
     if (dateStart) queryParams.set("date_start", dateStart)
     if (dateEnd) queryParams.set("date_end", dateEnd)
     if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-    if (params.secondaryGrouping) queryParams.set("secondary_grouping", params.secondaryGrouping)
+    if (params.secondaryGrouping)
+      params.secondaryGrouping.forEach((secondaryGrouping) =>
+        queryParams.append("secondary_grouping", secondaryGrouping)
+      )
     if (params.network_region) queryParams.set("network_region", params.network_region)
     if (params.fueltech) params.fueltech.forEach((fueltech) => queryParams.append("fueltech", fueltech))
     if (params.fueltech_group)
