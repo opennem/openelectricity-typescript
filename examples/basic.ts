@@ -19,6 +19,7 @@ async function main() {
       dateStart: "2024-01-01T00:00:00",
       dateEnd: "2024-01-02T00:00:00",
       primaryGrouping: "network_region",
+      network_region: "NSW1",
     })
 
     // Print the raw API response
