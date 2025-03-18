@@ -140,7 +140,8 @@ export function createNetworkDate(
 
   const [, sign, hours, minutes] = offsetMatch
   const offsetMinutes =
-    (Number.parseInt(hours) * 60 + Number.parseInt(minutes)) * (sign === "+" ? 1 : -1)
+    (Number.parseInt(hours) * 60 + Number.parseInt(minutes)) *
+    (sign === "+" ? 1 : -1)
 
   // Adjust the date by the timezone offset
   const utcTime =

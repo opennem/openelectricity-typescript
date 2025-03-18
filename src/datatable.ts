@@ -4,6 +4,7 @@
  */
 
 import { createNetworkDate } from "./datetime"
+
 import type { INetworkTimeSeries } from "./types"
 
 export interface IDataTableRow {
@@ -36,11 +37,7 @@ export class DataTable {
   private cache: IDataTableCache = {}
   private rowsMap: Map<string, IDataTableRow>
 
-  constructor(
-    rows: IDataTableRow[],
-    groupings: string[],
-    metrics: Map<string, string>,
-  ) {
+  constructor(rows: IDataTableRow[], groupings: string[], metrics: Map<string, string>) {
     this.rows = rows
     this.groupings = groupings
     this.metrics = metrics
@@ -69,17 +66,11 @@ export class DataTable {
     data.forEach((series) => {
       series.results.forEach((result) => {
         result.data.forEach(([timestamp, value]) => {
-          const date = createNetworkDate(
-            timestamp,
-            series.network_timezone_offset,
-          )
+          const date = createNetworkDate(timestamp, series.network_timezone_offset)
           const dateKey = date.toISOString()
 
           // Create a unique key for the row
-          const rowKey = [
-            dateKey,
-            ...Object.entries(result.columns).map(([k, v]) => `${k}:${v}`),
-          ].join("_")
+          const rowKey = [dateKey, ...Object.entries(result.columns).map(([k, v]) => `${k}:${v}`)].join("_")
 
           // Find or create row using rowsMap
           let row = table.getRowByKey(rowKey)
@@ -104,9 +95,7 @@ export class DataTable {
   }
 
   private createRowMap(): void {
-    this.rowsMap = new Map(
-      this.rows.map((row) => [this.createRowKey(row), row]),
-    )
+    this.rowsMap = new Map(this.rows.map((row) => [this.createRowKey(row), row]))
   }
 
   private createRowKey(row: IDataTableRow): string {
@@ -187,9 +176,7 @@ export class DataTable {
    */
   public getLatestTimestamp(): number {
     if (!this.cache.latestTimestamp) {
-      this.cache.latestTimestamp = Math.max(
-        ...this.rows.map((r) => r.interval.getTime()),
-      )
+      this.cache.latestTimestamp = Math.max(...this.rows.map((r) => r.interval.getTime()))
     }
     return this.cache.latestTimestamp
   }
@@ -209,9 +196,7 @@ export class DataTable {
     return new DataTable(filteredRows, this.groupings, this.metrics)
   }
 
-  private tryIndexFilter(
-    condition: (row: IDataTableRow) => boolean,
-  ): DataTable | null {
+  private tryIndexFilter(condition: (row: IDataTableRow) => boolean): DataTable | null {
     // Try to find matching rows in our column indexes
     for (const [column, columnIndex] of this.cache.columnIndexes || []) {
       // Test the first row to see if this is a simple equality check on this column
@@ -223,8 +208,7 @@ export class DataTable {
         // Test if this is an equality check for this value
         testRow[column] = value
         const otherValues = { ...testRow }
-        otherValues[column] =
-          value === true ? false : value === false ? true : value === 0 ? 1 : 0
+        otherValues[column] = value === true ? false : value === false ? true : value === 0 ? 1 : 0
 
         if (condition(testRow) && !condition(otherValues)) {
           return new DataTable([...rows], this.groupings, this.metrics)
@@ -260,25 +244,18 @@ export class DataTable {
     return new DataTable(
       newRows,
       this.groupings.filter((g) => columns.includes(g)),
-      newMetrics,
+      newMetrics
     )
   }
 
   /**
    * Group by specified columns and aggregate values
    */
-  public groupBy(
-    columns: string[],
-    aggregation: "sum" | "mean" = "sum",
-  ): DataTable {
+  public groupBy(columns: string[], aggregation: "sum" | "mean" = "sum"): DataTable {
     const cacheKey = `${columns.join("_")}_${aggregation}`
     const cachedGroups = this.cache.groupedRows?.get(cacheKey)
     if (cachedGroups) {
-      return new DataTable(
-        Array.from(cachedGroups.values()).flat(),
-        columns,
-        this.metrics,
-      )
+      return new DataTable(Array.from(cachedGroups.values()).flat(), columns, this.metrics)
     }
 
     const groups = new Map<string, IDataTableRow[]>()
@@ -297,8 +274,8 @@ export class DataTable {
               acc[col] = row[col]
               return acc
             },
-            {} as Record<string, unknown>,
-          ),
+            {} as Record<string, unknown>
+          )
         )
       }
 
@@ -333,7 +310,7 @@ export class DataTable {
         metricNames.forEach((metric) => {
           const value = row[metric] as number
           const metricArray = metricArrays.get(metric)
-          if (value !== null && !isNaN(value) && metricArray) {
+          if (value !== null && !Number.isNaN(value) && metricArray) {
             metricArray[i] = value
           }
         })
@@ -417,9 +394,7 @@ export class DataTable {
    */
   public describe(): Record<string, IDescribeResult> {
     const result: Record<string, IDescribeResult> = {}
-    const numericColumns = Object.keys(this.rows[0] || {}).filter(
-      (key) => typeof this.rows[0][key] === "number",
-    )
+    const numericColumns = Object.keys(this.rows[0] || {}).filter((key) => typeof this.rows[0][key] === "number")
 
     // Pre-allocate arrays for each column
     const columnArrays = new Map<string, number[]>()
@@ -432,7 +407,7 @@ export class DataTable {
       numericColumns.forEach((column) => {
         const value = row[column] as number
         const columnArray = columnArrays.get(column)
-        if (typeof value === "number" && !isNaN(value) && columnArray) {
+        if (typeof value === "number" && !Number.isNaN(value) && columnArray) {
           columnArray.push(value)
         }
       })
@@ -451,7 +426,7 @@ export class DataTable {
       // Calculate variance in single pass
       let variance = 0
       for (const value of values) {
-        variance += Math.pow(value - mean, 2)
+        variance += (value - mean) ** 2
       }
       variance /= count
 
