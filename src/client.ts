@@ -9,8 +9,8 @@
 
 import { createDataTable } from "./datatable"
 import { isAware, stripTimezone } from "./datetime"
-import { IRecord, RecordTable } from "./recordtable"
-import {
+import { type IRecord, RecordTable } from "./recordtable"
+import type {
   DataMetric,
   FacilityResponse,
   IAPIErrorResponse,

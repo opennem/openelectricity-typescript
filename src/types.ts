@@ -2,9 +2,9 @@
  * Type definitions for OpenElectricity API
  */
 
-import { IFacilityRecord } from "./client"
-import { DataTable } from "./datatable"
-import { RecordTable } from "./recordtable"
+import type { IFacilityRecord } from "./client"
+import type { DataTable } from "./datatable"
+import type { RecordTable } from "./recordtable"
 
 // Network and Data Types
 export type NetworkCode = "NEM" | "WEM" | "AU"

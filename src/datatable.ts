@@ -4,7 +4,7 @@
  */
 
 import { createNetworkDate } from "./datetime"
-import { INetworkTimeSeries } from "./types"
+import type { INetworkTimeSeries } from "./types"
 
 export interface IDataTableRow {
   interval: Date

@@ -2,7 +2,7 @@
  * OpenElectricity configuration constants
  */
 
-import { NetworkCode } from "./types"
+import type { NetworkCode } from "./types"
 
 /**
  * Network timezone offsets in hours
