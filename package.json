@@ -41,30 +41,22 @@
     "build": "./bin/build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts"
+    "lint": "biome lint --write src/",
+    "format": "biome format --write src/",
+    "format:check": "biome format --check src/"
   },
   "dependencies": {
     "dayjs": "^1.11.13"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/bun": "latest",
-    "@types/node": "^22.13.4",
-    "@typescript-eslint/eslint-plugin": "^8.24.0",
-    "@typescript-eslint/parser": "^8.24.0",
-    "eslint": "^9.20.1",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-import-resolver-typescript": "^3.8.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-unused-imports": "^4.1.4",
+    "@types/node": "^22.13.10",
     "jq": "^1.7.2",
-    "prettier": "^3.5.0",
-    "rollup": "^4.9.6",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.5"
+    "rollup": "^4.36.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
   },
   "volta": {
     "node": "22.14.0"

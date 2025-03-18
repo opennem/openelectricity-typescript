@@ -1,39 +1,20 @@
 {
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-    "source.addMissingImports": "explicit",
-    "source.fixAll.eslint": "explicit"
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome",
+		"editor.formatOnSave": true
   },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/.vscode": true
-  },
-  "search.useGlobalIgnoreFiles": true,
-  "search.useParentIgnoreFiles": true,
-  "git.autofetch": true,
-  "editor.trimAutoWhitespace": true,
-  "files.encoding": "utf8",
-  "files.trimFinalNewlines": true,
-  "files.trimTrailingWhitespace": true,
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-  "editor.detectIndentation": false,
-  "editor.tabSize": 2,
-  "eslint.enable": true,
-  "eslint.format.enable": true,
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  "editor.formatOnType": true,
-  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
-  "npm.packageManager": "bun",
   "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
   },
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  }
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+		"quickfix.biome": "explicit",
+		"source.organizeImports.biome": "explicit"
+	}
 }
