@@ -16,7 +16,9 @@ const isDevelopment = ((): boolean => {
   try {
     // Check for SSR environment (Node.js but potentially missing some browser APIs)
     const isSSR =
-      typeof process !== "undefined" && typeof window === "undefined" && process?.env?.NODE_ENV !== undefined
+      typeof process !== "undefined" &&
+      typeof window === "undefined" &&
+      process?.env?.NODE_ENV !== undefined
 
     // If in SSR, use the NODE_ENV value
     if (isSSR) {
@@ -24,7 +26,10 @@ const isDevelopment = ((): boolean => {
     }
 
     // Regular Node.js environment check
-    if (typeof process !== "undefined" && process?.env?.NODE_ENV === "development") {
+    if (
+      typeof process !== "undefined" &&
+      process?.env?.NODE_ENV === "development"
+    ) {
       return true
     }
 

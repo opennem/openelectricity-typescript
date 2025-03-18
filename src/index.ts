@@ -5,7 +5,10 @@
 
 // Export the client
 export * from "./client"
-export { OpenElectricityClient as default, OpenElectricityClient } from "./client"
+export {
+  OpenElectricityClient as default,
+  OpenElectricityClient,
+} from "./client"
 
 // Export all types
 export type {
@@ -21,7 +24,6 @@ export type {
   IMarketTimeSeriesParams,
   INetworkTimeSeries,
   INetworkTimeSeriesParams,
-
   // Response Types
   ITimeSeriesResponse,
   ITimeSeriesResult,

@@ -91,7 +91,9 @@ export function makeAware(date: string | Date, network: NetworkCode): string {
  */
 export function stripTimezone(dateStr: string): string {
   // Match everything up to but not including Z, + or - followed by timezone offset
-  const match = dateStr.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}/)
+  const match = dateStr.match(
+    /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}/,
+  )
   return match ? match[0] : dateStr
 }
 
@@ -125,7 +127,10 @@ export function getLastCompleteInterval(network: NetworkCode): string {
 /**
  * Creates a date with the correct network timezone
  */
-export function createNetworkDate(isoString: string, timezoneOffset: string): Date {
+export function createNetworkDate(
+  isoString: string,
+  timezoneOffset: string,
+): Date {
   // Parse the ISO string into a Date object
   const date = new Date(isoString)
 
@@ -134,9 +139,11 @@ export function createNetworkDate(isoString: string, timezoneOffset: string): Da
   if (!offsetMatch) return date
 
   const [, sign, hours, minutes] = offsetMatch
-  const offsetMinutes = (parseInt(hours) * 60 + parseInt(minutes)) * (sign === "+" ? 1 : -1)
+  const offsetMinutes =
+    (parseInt(hours) * 60 + parseInt(minutes)) * (sign === "+" ? 1 : -1)
 
   // Adjust the date by the timezone offset
-  const utcTime = date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
+  const utcTime =
+    date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
   return new Date(utcTime)
 }

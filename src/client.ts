@@ -57,7 +57,7 @@ export interface IFacilityRecord extends IRecord {
 export class OpenElectricityError extends Error {
   constructor(
     message: string,
-    public response?: IAPIErrorResponse
+    public response?: IAPIErrorResponse,
   ) {
     super(message)
     this.name = "OpenElectricityError"
@@ -78,7 +78,10 @@ export class NoDataFound extends Error {
  * @param paramName The name of the parameter (for warning message)
  * @returns The timezone naive date string
  */
-function toTimezoneNaiveDate(date: string | undefined, paramName: string): string | undefined {
+function toTimezoneNaiveDate(
+  date: string | undefined,
+  paramName: string,
+): string | undefined {
   if (!date) return undefined
 
   if (isAware(date)) {
@@ -87,7 +90,7 @@ function toTimezoneNaiveDate(date: string | undefined, paramName: string): strin
       {
         original: date,
         stripped: stripTimezone(date),
-      }
+      },
     )
     return stripTimezone(date)
   }
@@ -105,7 +108,7 @@ export class OpenElectricityClient {
     options: {
       apiKey?: string
       baseUrl?: string
-    } = {}
+    } = {},
   ) {
     // eslint-disable-next-line no-undef
     this.apiKey = options.apiKey || process?.env?.OPENELECTRICITY_API_KEY || ""
@@ -113,12 +116,18 @@ export class OpenElectricityClient {
       throw new Error("API key is required")
     }
     // eslint-disable-next-line no-undef
-    this.baseUrl = options.baseUrl || process?.env?.OPENELECTRICITY_API_URL || "https://api.openelectricity.org.au/v4"
+    this.baseUrl =
+      options.baseUrl ||
+      process?.env?.OPENELECTRICITY_API_URL ||
+      "https://api.openelectricity.org.au/v4"
 
     debug("Initializing client", { baseUrl: this.baseUrl })
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<IAPIResponse<T>> {
+  private async request<T>(
+    path: string,
+    options: RequestInit = {},
+  ): Promise<IAPIResponse<T>> {
     const url = `${this.baseUrl}${path}`
     const headers = {
       Authorization: `Bearer ${this.apiKey}`,
@@ -206,7 +215,7 @@ export class OpenElectricityClient {
   async getNetworkData(
     networkCode: NetworkCode,
     metrics: DataMetric[],
-    params: INetworkTimeSeriesParams = {}
+    params: INetworkTimeSeriesParams = {},
   ): Promise<ITimeSeriesResponse> {
     debug("Getting network data", { networkCode, metrics, params })
 
@@ -217,18 +226,27 @@ export class OpenElectricityClient {
     const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
     if (dateStart) queryParams.set("date_start", dateStart)
     if (dateEnd) queryParams.set("date_end", dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
+    if (params.primaryGrouping)
+      queryParams.set("primary_grouping", params.primaryGrouping)
     if (params.secondaryGrouping)
       params.secondaryGrouping.forEach((secondaryGrouping) =>
-        queryParams.append("secondary_grouping", secondaryGrouping)
+        queryParams.append("secondary_grouping", secondaryGrouping),
       )
-    if (params.network_region) queryParams.set("network_region", params.network_region)
-    if (params.fueltech) params.fueltech.forEach((fueltech) => queryParams.append("fueltech", fueltech))
+    if (params.network_region)
+      queryParams.set("network_region", params.network_region)
+    if (params.fueltech)
+      params.fueltech.forEach((fueltech) =>
+        queryParams.append("fueltech", fueltech),
+      )
     if (params.fueltech_group)
-      params.fueltech_group.forEach((fueltech_group) => queryParams.append("fueltech_group", fueltech_group))
+      params.fueltech_group.forEach((fueltech_group) =>
+        queryParams.append("fueltech_group", fueltech_group),
+      )
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/data/network/${networkCode}${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(
+      `/data/network/${networkCode}${query}`,
+    )
 
     return {
       response,
@@ -248,9 +266,14 @@ export class OpenElectricityClient {
     networkCode: NetworkCode,
     facilityCodes: string | string[],
     metrics: DataMetric[],
-    params: IFacilityTimeSeriesParams = {}
+    params: IFacilityTimeSeriesParams = {},
   ): Promise<ITimeSeriesResponse> {
-    debug("Getting facility data", { networkCode, facilityCodes, metrics, params })
+    debug("Getting facility data", {
+      networkCode,
+      facilityCodes,
+      metrics,
+      params,
+    })
 
     const queryParams = new URLSearchParams()
     metrics.forEach((metric) => queryParams.append("metrics", metric))
@@ -268,7 +291,9 @@ export class OpenElectricityClient {
     }
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/data/facilities/${networkCode}${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(
+      `/data/facilities/${networkCode}${query}`,
+    )
     return {
       response,
       datatable: createDataTable(response.data),
@@ -286,7 +311,7 @@ export class OpenElectricityClient {
   async getMarket(
     networkCode: NetworkCode,
     metrics: MarketMetric[],
-    params: IMarketTimeSeriesParams = {}
+    params: IMarketTimeSeriesParams = {},
   ): Promise<ITimeSeriesResponse> {
     debug("Getting market data", { networkCode, metrics, params })
 
@@ -297,11 +322,15 @@ export class OpenElectricityClient {
     const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
     if (dateStart) queryParams.set("date_start", dateStart)
     if (dateEnd) queryParams.set("date_end", dateEnd)
-    if (params.primaryGrouping) queryParams.set("primary_grouping", params.primaryGrouping)
-    if (params.network_region) queryParams.set("network_region", params.network_region)
+    if (params.primaryGrouping)
+      queryParams.set("primary_grouping", params.primaryGrouping)
+    if (params.network_region)
+      queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(`/market/network/${networkCode}${query}`)
+    const response = await this.request<INetworkTimeSeries[]>(
+      `/market/network/${networkCode}${query}`,
+    )
 
     return {
       response,
@@ -319,19 +348,26 @@ export class OpenElectricityClient {
 
     const queryParams = new URLSearchParams()
     if (params.status_id) {
-      params.status_id.forEach((status) => queryParams.append("status_id", status))
+      params.status_id.forEach((status) =>
+        queryParams.append("status_id", status),
+      )
     }
     if (params.fueltech_id) {
-      params.fueltech_id.forEach((fueltech) => queryParams.append("fueltech_id", fueltech))
+      params.fueltech_id.forEach((fueltech) =>
+        queryParams.append("fueltech_id", fueltech),
+      )
     }
     if (params.network_id) {
       if (Array.isArray(params.network_id)) {
-        params.network_id.forEach((network) => queryParams.append("network_id", network))
+        params.network_id.forEach((network) =>
+          queryParams.append("network_id", network),
+        )
       } else {
         queryParams.append("network_id", params.network_id)
       }
     }
-    if (params.network_region) queryParams.set("network_region", params.network_region)
+    if (params.network_region)
+      queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
     const response = await this.request<IFacility[]>(`/facilities/${query}`)
@@ -352,7 +388,7 @@ export class OpenElectricityClient {
         unit_first_seen: unit.data_first_seen,
         unit_last_seen: unit.data_last_seen,
         unit_dispatch_type: unit.dispatch_type,
-      }))
+      })),
     )
 
     return {

@@ -8,7 +8,16 @@ import { RecordTable } from "./recordtable"
 
 // Network and Data Types
 export type NetworkCode = "NEM" | "WEM" | "AU"
-export type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
+export type DataInterval =
+  | "5m"
+  | "1h"
+  | "1d"
+  | "7d"
+  | "1M"
+  | "3M"
+  | "season"
+  | "1y"
+  | "fy"
 export type DataPrimaryGrouping = "network" | "network_region"
 export type DataSecondaryGrouping = "fueltech" | "fueltech_group" | "renewable"
 
@@ -54,7 +63,11 @@ export type UnitFueltechGroupType =
   | "bioenergy"
   | "pumps"
 
-export type UnitDispatchType = "GENERATOR" | "LOAD" | "NETWORK" | "INTERCONNECTOR"
+export type UnitDispatchType =
+  | "GENERATOR"
+  | "LOAD"
+  | "NETWORK"
+  | "INTERCONNECTOR"
 
 export interface IUnit {
   code: string

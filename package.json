@@ -43,7 +43,7 @@
     "test:watch": "vitest",
     "lint": "biome lint --write src/",
     "format": "biome format --write src/",
-    "format:check": "biome format --check src/"
+    "format:check": "biome format src/"
   },
   "dependencies": {
     "dayjs": "^1.11.13"
