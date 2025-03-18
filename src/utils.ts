@@ -9,11 +9,21 @@ declare const console: { log: (message: string, ...args: unknown[]) => void }
 
 /**
  * Safely detect if we're in a development environment
- * Works in both Node.js and browser environments
+ * Works in both Node.js, browser, and SSR environments
  */
 const isDevelopment = ((): boolean => {
   // Check for Node.js environment
   try {
+    // Check for SSR environment (Node.js but potentially missing some browser APIs)
+    const isSSR =
+      typeof process !== "undefined" && typeof window === "undefined" && process?.env?.NODE_ENV !== undefined
+
+    // If in SSR, use the NODE_ENV value
+    if (isSSR) {
+      return process?.env?.NODE_ENV === "development"
+    }
+
+    // Regular Node.js environment check
     if (typeof process !== "undefined" && process?.env?.NODE_ENV === "development") {
       return true
     }

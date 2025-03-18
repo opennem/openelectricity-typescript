@@ -40,6 +40,7 @@ cat >dist/package.json <<EOF
         "require": "./node/index.js"
       },
       "browser": "./browser/index.js",
+      "ssr": "./node/index.js",
       "default": "./node/index.js"
     },
     "./datatable": {
@@ -49,6 +50,7 @@ cat >dist/package.json <<EOF
         "require": "./node/datatable.js"
       },
       "browser": "./browser/datatable.js",
+      "ssr": "./node/datatable.js",
       "default": "./node/datatable.js"
     }
   },
