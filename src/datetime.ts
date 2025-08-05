@@ -125,26 +125,15 @@ export function getLastCompleteInterval(network: NetworkCode): string {
 }
 
 /**
- * Creates a date with the correct network timezone
+ * Creates a date from an ISO string with timezone information.
+ * 
+ * The JavaScript Date constructor correctly handles ISO 8601 strings with timezone
+ * offsets (e.g., "2024-04-07T00:00:00+10:00"), so no manual adjustment is needed.
+ * 
+ * @param isoString ISO 8601 date string with timezone offset
+ * @returns Date object representing the correct point in time
  */
-export function createNetworkDate(
-  isoString: string,
-  timezoneOffset: string,
-): Date {
-  // Parse the ISO string into a Date object
-  const date = new Date(isoString)
-
-  // Get the timezone offset in minutes
-  const offsetMatch = timezoneOffset.match(/([+-])(\d{2}):(\d{2})/)
-  if (!offsetMatch) return date
-
-  const [, sign, hours, minutes] = offsetMatch
-  const offsetMinutes =
-    (Number.parseInt(hours) * 60 + Number.parseInt(minutes)) *
-    (sign === "+" ? 1 : -1)
-
-  // Adjust the date by the timezone offset
-  const utcTime =
-    date.getTime() + (date.getTimezoneOffset() + offsetMinutes) * 60 * 1000
-  return new Date(utcTime)
+export function createNetworkDate(isoString: string): Date {
+  // The Date constructor already handles timezone-aware ISO strings correctly
+  return new Date(isoString)
 }
