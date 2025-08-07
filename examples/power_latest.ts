@@ -25,7 +25,7 @@ async function main(): Promise<void> {
       dateStart: startDate.toISOString(),
       dateEnd: endDate.toISOString(),
       primaryGrouping: "network_region",
-      secondaryGrouping: "fueltech",
+      secondaryGrouping: ["fueltech"],
     })
 
     if (!datatable) {
