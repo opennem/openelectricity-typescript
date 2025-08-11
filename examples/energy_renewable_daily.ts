@@ -24,7 +24,7 @@ async function main() {
       dateEnd: endDate.toISOString(),
       interval: "1d",
       primaryGrouping: "network_region",
-      secondaryGrouping: "renewable",
+      secondaryGrouping: ["renewable"],
     })
 
     if (!datatable) {

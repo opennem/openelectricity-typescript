@@ -6,7 +6,8 @@
  * - Calculating percentage contribution by fuel technology group
  */
 
-import { DataTable, OpenElectricityClient } from "openelectricity"
+import { OpenElectricityClient } from "../src/client"
+import { DataTable } from "../src/datatable"
 
 async function main(): Promise<void> {
   // Initialize client

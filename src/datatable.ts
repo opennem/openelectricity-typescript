@@ -70,10 +70,7 @@ export class DataTable {
     data.forEach((series) => {
       series.results.forEach((result) => {
         result.data.forEach(([timestamp, value]) => {
-          const date = createNetworkDate(
-            timestamp,
-            series.network_timezone_offset,
-          )
+          const date = createNetworkDate(timestamp)
           const dateKey = date.toISOString()
 
           // Create a unique key for the row
