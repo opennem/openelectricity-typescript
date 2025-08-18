@@ -19,6 +19,9 @@ export type {
   DataSecondaryGrouping,
   // API Response Types
   IAPIResponse,
+  IMetricMetadata,
+  IMetricsResponse,
+  IValidationErrorDetail,
   // Request Parameter Types
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,

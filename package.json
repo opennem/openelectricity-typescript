@@ -40,6 +40,8 @@
   "scripts": {
     "build": "./bin/build",
     "test": "vitest run",
+    "test:integration": "vitest run tests-integration/",
+    "test:all": "vitest run tests/ tests-integration/",
     "test:watch": "vitest",
     "lint": "biome lint --write src/",
     "format": "biome format --write src/",

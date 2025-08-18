@@ -102,6 +102,32 @@ export interface IAPIErrorResponse {
   success: false
 }
 
+export interface IValidationErrorDetail {
+  error?: string
+  supported_metrics?: string[]
+  requested_metrics?: string[]
+  invalid_metrics?: string[]
+  hint?: string
+  [key: string]: unknown
+}
+
+export interface IMetricMetadata {
+  name: string
+  unit: string
+  description: string
+  default_aggregation: string
+  precision: number
+}
+
+export interface IMetricsResponse {
+  metrics: Record<string, IMetricMetadata>
+  total: number
+  endpoints: {
+    market: string[]
+    data: string[]
+  }
+}
+
 export interface IAPIResponse<T> {
   version: string
   created_at: string

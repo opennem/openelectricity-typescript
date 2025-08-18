@@ -19,10 +19,12 @@ import type {
   IFacilityParams,
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
+  IMetricsResponse,
   INetworkTimeSeries,
   INetworkTimeSeriesParams,
   ITimeSeriesResponse,
   IUser,
+  IValidationErrorDetail,
   MarketMetric,
   NetworkCode,
 } from "./types"
@@ -59,7 +61,7 @@ export class OpenElectricityError extends Error {
     message: string,
     public response?: IAPIErrorResponse,
     public statusCode?: number,
-    public details?: any,
+    public details?: IValidationErrorDetail | Record<string, unknown>,
   ) {
     super(message)
     this.name = "OpenElectricityError"
@@ -235,23 +237,7 @@ export class OpenElectricityClient {
    * Get available metrics and their metadata
    * Useful for discovering what metrics are supported by the API
    */
-  async getAvailableMetrics(): Promise<{
-    metrics: Record<
-      string,
-      {
-        name: string
-        unit: string
-        description: string
-        default_aggregation: string
-        precision: number
-      }
-    >
-    total: number
-    endpoints: {
-      market: string[]
-      data: string[]
-    }
-  }> {
+  async getAvailableMetrics(): Promise<IMetricsResponse> {
     debug("Getting available metrics")
     const url = `${this.baseUrl}/metrics`
     const response = await fetch(url, {
@@ -265,7 +251,7 @@ export class OpenElectricityClient {
       throw new Error(`Failed to get metrics: ${response.statusText}`)
     }
 
-    return await response.json()
+    return (await response.json()) as IMetricsResponse
   }
 
   /**
