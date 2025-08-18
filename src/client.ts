@@ -58,6 +58,8 @@ export class OpenElectricityError extends Error {
   constructor(
     message: string,
     public response?: IAPIErrorResponse,
+    public statusCode?: number,
+    public details?: any,
   ) {
     super(message)
     this.name = "OpenElectricityError"
@@ -170,24 +172,49 @@ export class OpenElectricityClient {
 
     const data = await response.json()
 
-    // Handle API error responses (4xx errors)
-    if (!response.ok && response.status < 500) {
-      debug("Request failed with API error", {
-        status: response.status,
-        data,
-      })
-      if (this.isAPIErrorResponse(data)) {
-        throw new OpenElectricityError(data.error, data)
-      }
-    }
-
-    // Handle other non-OK responses
+    // Handle API error responses
     if (!response.ok) {
       debug("Request failed", {
         status: response.status,
         statusText: response.statusText,
+        data,
       })
-      throw new Error(`API request failed: ${response.statusText}`)
+      
+      // Parse different error response formats
+      let errorMessage = `API request failed: ${response.statusText}`
+      let errorDetails = null
+      
+      // Check for standard error response format
+      if (this.isAPIErrorResponse(data)) {
+        errorMessage = data.error
+      } 
+      // Check for validation error format with details
+      else if (data && typeof data === "object" && "detail" in data) {
+        const detail = data.detail
+        if (typeof detail === "string") {
+          errorMessage = detail
+        } else if (typeof detail === "object" && detail !== null) {
+          // Handle structured error details (from improved validation)
+          if ("error" in detail) {
+            errorMessage = detail.error as string
+          }
+          if ("hint" in detail) {
+            errorMessage += ` (${detail.hint})`
+          }
+          errorDetails = detail
+        }
+      }
+      // Check for simple error message
+      else if (data && typeof data === "object" && "error" in data) {
+        errorMessage = data.error as string
+      }
+      
+      throw new OpenElectricityError(
+        errorMessage,
+        this.isAPIErrorResponse(data) ? data : undefined,
+        response.status,
+        errorDetails || data
+      )
     }
 
     return data as IAPIResponse<T>
@@ -202,6 +229,40 @@ export class OpenElectricityClient {
       "error" in data &&
       typeof data.error === "string"
     )
+  }
+
+  /**
+   * Get available metrics and their metadata
+   * Useful for discovering what metrics are supported by the API
+   */
+  async getAvailableMetrics(): Promise<{
+    metrics: Record<string, {
+      name: string
+      unit: string
+      description: string
+      default_aggregation: string
+      precision: number
+    }>
+    total: number
+    endpoints: {
+      market: string[]
+      data: string[]
+    }
+  }> {
+    debug("Getting available metrics")
+    const url = `${this.baseUrl}/metrics`
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get metrics: ${response.statusText}`)
+    }
+    
+    return await response.json()
   }
 
   /**
