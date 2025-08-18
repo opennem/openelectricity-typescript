@@ -179,15 +179,15 @@ export class OpenElectricityClient {
         statusText: response.statusText,
         data,
       })
-      
+
       // Parse different error response formats
       let errorMessage = `API request failed: ${response.statusText}`
       let errorDetails = null
-      
+
       // Check for standard error response format
       if (this.isAPIErrorResponse(data)) {
         errorMessage = data.error
-      } 
+      }
       // Check for validation error format with details
       else if (data && typeof data === "object" && "detail" in data) {
         const detail = data.detail
@@ -208,12 +208,12 @@ export class OpenElectricityClient {
       else if (data && typeof data === "object" && "error" in data) {
         errorMessage = data.error as string
       }
-      
+
       throw new OpenElectricityError(
         errorMessage,
         this.isAPIErrorResponse(data) ? data : undefined,
         response.status,
-        errorDetails || data
+        errorDetails || data,
       )
     }
 
@@ -236,13 +236,16 @@ export class OpenElectricityClient {
    * Useful for discovering what metrics are supported by the API
    */
   async getAvailableMetrics(): Promise<{
-    metrics: Record<string, {
-      name: string
-      unit: string
-      description: string
-      default_aggregation: string
-      precision: number
-    }>
+    metrics: Record<
+      string,
+      {
+        name: string
+        unit: string
+        description: string
+        default_aggregation: string
+        precision: number
+      }
+    >
     total: number
     endpoints: {
       market: string[]
@@ -255,13 +258,13 @@ export class OpenElectricityClient {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
-      }
+      },
     })
-    
+
     if (!response.ok) {
       throw new Error(`Failed to get metrics: ${response.statusText}`)
     }
-    
+
     return await response.json()
   }
 
