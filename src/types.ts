@@ -23,7 +23,12 @@ export type DataSecondaryGrouping = "fueltech" | "fueltech_group" | "renewable"
 
 // Metric Types
 export type DataMetric = "power" | "energy" | "emissions" | "market_value"
-export type MarketMetric = "price" | "demand" | "demand_energy" | "curtailment_solar" | "curtailment_wind"
+export type MarketMetric =
+  | "price"
+  | "demand"
+  | "demand_energy"
+  | "curtailment_solar"
+  | "curtailment_wind"
 export type Metric = DataMetric | MarketMetric
 
 // Facility Types

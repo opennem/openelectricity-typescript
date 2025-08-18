@@ -126,10 +126,10 @@ export function getLastCompleteInterval(network: NetworkCode): string {
 
 /**
  * Creates a date from an ISO string with timezone information.
- * 
+ *
  * The JavaScript Date constructor correctly handles ISO 8601 strings with timezone
  * offsets (e.g., "2024-04-07T00:00:00+10:00"), so no manual adjustment is needed.
- * 
+ *
  * @param isoString ISO 8601 date string with timezone offset
  * @returns Date object representing the correct point in time
  */
