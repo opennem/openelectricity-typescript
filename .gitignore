@@ -176,3 +176,5 @@ dist
 .cursorrules
 .envrc
 docs/
+CLAUDE.md
+package-lock.json
