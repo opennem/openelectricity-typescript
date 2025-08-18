@@ -27,8 +27,12 @@ export type MarketMetric =
   | "price"
   | "demand"
   | "demand_energy"
+  | "curtailment"
+  | "curtailment_energy"
   | "curtailment_solar"
+  | "curtailment_solar_energy"
   | "curtailment_wind"
+  | "curtailment_wind_energy"
 export type Metric = DataMetric | MarketMetric
 
 // Facility Types
