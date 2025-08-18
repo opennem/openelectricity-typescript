@@ -18,7 +18,7 @@ async function main() {
       dateStart: "2024-01-01T00:00:00",
       dateEnd: "2024-01-02T00:00:00",
       primaryGrouping: "network_region",
-      secondaryGrouping: "fueltech_group",
+      secondaryGrouping: ["fueltech_group"],
     })
 
     if (!datatable) {
