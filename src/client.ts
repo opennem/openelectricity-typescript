@@ -172,7 +172,38 @@ export class OpenElectricityClient {
       throw new Error("Permission denied. Check API key or your access level")
     }
 
-    const data = await response.json()
+    // Try to parse JSON response, handle cases where response is not valid JSON
+    let data: unknown
+    try {
+      data = await response.json()
+    } catch (jsonError) {
+      // If we can't parse JSON and it's an error response, provide a meaningful error
+      if (!response.ok) {
+        debug("Failed to parse JSON response", {
+          status: response.status,
+          statusText: response.statusText,
+          error: jsonError,
+        })
+
+        // For 500 errors, provide a more specific message
+        if (response.status === 500) {
+          throw new OpenElectricityError(
+            "Internal server error - the requested data may not be available for this date range",
+            undefined,
+            response.status,
+            { parseError: "Response was not valid JSON" },
+          )
+        }
+
+        throw new OpenElectricityError(
+          `API request failed: ${response.statusText} (unable to parse response)`,
+          undefined,
+          response.status,
+          { parseError: "Response was not valid JSON" },
+        )
+      }
+      throw jsonError
+    }
 
     // Handle API error responses
     if (!response.ok) {
@@ -184,7 +215,7 @@ export class OpenElectricityClient {
 
       // Parse different error response formats
       let errorMessage = `API request failed: ${response.statusText}`
-      let errorDetails = null
+      let errorDetails: IValidationErrorDetail | Record<string, unknown> | undefined
 
       // Check for standard error response format
       if (this.isAPIErrorResponse(data)) {
@@ -203,7 +234,7 @@ export class OpenElectricityClient {
           if ("hint" in detail) {
             errorMessage += ` (${detail.hint})`
           }
-          errorDetails = detail
+          errorDetails = detail as IValidationErrorDetail
         }
       }
       // Check for simple error message
@@ -211,11 +242,16 @@ export class OpenElectricityClient {
         errorMessage = data.error as string
       }
 
+      // Set errorDetails if not already set
+      if (!errorDetails && data && typeof data === "object") {
+        errorDetails = data as Record<string, unknown>
+      }
+
       throw new OpenElectricityError(
         errorMessage,
         this.isAPIErrorResponse(data) ? data : undefined,
         response.status,
-        errorDetails || data,
+        errorDetails,
       )
     }
 

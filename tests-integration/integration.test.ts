@@ -73,8 +73,10 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
         expect.fail("Should have thrown an error")
       } catch (error) {
         if (error instanceof OpenElectricityError) {
-          // Check that we get a meaningful error, not just "500 Internal Server Error"
-          expect(error.statusCode).not.toBe(500)
+          // The API returns a 500 error with non-JSON response for wrong metrics
+          // Our client now handles this gracefully with a helpful error message
+          expect(error.statusCode).toBe(500)
+          expect(error.message).toContain("Internal server error")
         }
       }
     })
