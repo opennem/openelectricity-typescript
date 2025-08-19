@@ -215,7 +215,10 @@ export class OpenElectricityClient {
 
       // Parse different error response formats
       let errorMessage = `API request failed: ${response.statusText}`
-      let errorDetails: IValidationErrorDetail | Record<string, unknown> | undefined
+      let errorDetails:
+        | IValidationErrorDetail
+        | Record<string, unknown>
+        | undefined
 
       // Check for standard error response format
       if (this.isAPIErrorResponse(data)) {
