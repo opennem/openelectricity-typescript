@@ -17,6 +17,7 @@ import type {
   IAPIResponse,
   IFacility,
   IFacilityParams,
+  IFacilityPollutionParams,
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
   IMetricsResponse,
@@ -483,6 +484,63 @@ export class OpenElectricityClient {
     return {
       response,
       table: new RecordTable<IFacilityRecord>(records),
+    }
+  }
+
+  /**
+   * Get pollution data for facilities with NPI tracking
+   * Returns time series data for pollutants from the National Pollutant Inventory
+   * @param params Parameters for filtering pollution data
+   * @returns Promise with time series response containing pollution data
+   */
+  async getFacilityPollution(
+    params: IFacilityPollutionParams = {},
+  ): Promise<ITimeSeriesResponse> {
+    debug("Getting facility pollution data", { params })
+
+    const queryParams = new URLSearchParams()
+    
+    if (params.facility_code) {
+      params.facility_code.forEach((code) =>
+        queryParams.append("facility_code", code),
+      )
+    }
+    
+    if (params.pollutant_code) {
+      params.pollutant_code.forEach((code) =>
+        queryParams.append("pollutant_code", code),
+      )
+    }
+    
+    if (params.pollutant_category) {
+      params.pollutant_category.forEach((category) =>
+        queryParams.append("pollutant_category", category),
+      )
+    }
+    
+    if (params.dateStart) {
+      const dateStart = toTimezoneNaiveDate(params.dateStart, "dateStart")
+      if (dateStart) queryParams.set("date_start", dateStart)
+    }
+    
+    if (params.dateEnd) {
+      const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
+      if (dateEnd) queryParams.set("date_end", dateEnd)
+    }
+
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
+    const response = await this.request<INetworkTimeSeries[]>(
+      `/pollution/facilities${query}`,
+    )
+
+    // Create data table from the response
+    const datatable = response.data.length > 0 
+      ? createDataTable(response.data)
+      : undefined
+
+    return {
+      response,
+      datatable,
     }
   }
 

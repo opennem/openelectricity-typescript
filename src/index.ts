@@ -23,6 +23,7 @@ export type {
   IMetricsResponse,
   IValidationErrorDetail,
   // Request Parameter Types
+  IFacilityPollutionParams,
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
   INetworkTimeSeries,
