@@ -48,7 +48,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
       const curtailmentSolar = metrics.metrics.curtailment_solar_utility
       expect(curtailmentSolar).toBeDefined()
       expect(curtailmentSolar.unit).toBe("MW")
-      expect(curtailmentSolar.description).toContain("Solar")
+      expect(curtailmentSolar.description).toContain("solar")
     })
   })
 
