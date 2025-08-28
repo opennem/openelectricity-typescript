@@ -36,7 +36,7 @@ async function main() {
 
     // Fetch daily curtailment energy data for all NEM regions
     const metrics: MarketMetric[] = [
-      "curtailment_solar_energy", 
+      "curtailment_solar_utility_energy", 
       "curtailment_wind_energy", 
       "curtailment_energy"
     ]
@@ -91,7 +91,7 @@ async function main() {
             curtailmentByDate[date][region][metric] = value
 
             // Update totals
-            if (metric === "curtailment_solar_energy") {
+            if (metric === "curtailment_solar_utility_energy") {
               totalsByRegion[region].solar += value
             } else if (metric === "curtailment_wind_energy") {
               totalsByRegion[region].wind += value
@@ -122,7 +122,7 @@ async function main() {
       
       for (const region of regions) {
         const regionData = curtailmentByDate[date][region]
-        const solar = regionData["curtailment_solar_energy"] || 0
+        const solar = regionData["curtailment_solar_utility_energy"] || 0
         const wind = regionData["curtailment_wind_energy"] || 0
         const total = regionData["curtailment_energy"] || solar + wind
 

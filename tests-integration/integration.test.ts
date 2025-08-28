@@ -31,7 +31,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
       expect(metrics.endpoints).toBeDefined()
       expect(metrics.endpoints.market).toContain("price")
       expect(metrics.endpoints.market).toContain("demand")
-      expect(metrics.endpoints.market).toContain("curtailment_solar")
+      expect(metrics.endpoints.market).toContain("curtailment_solar_utility")
       expect(metrics.endpoints.market).toContain("curtailment_wind")
       expect(metrics.endpoints.data).toContain("power")
       expect(metrics.endpoints.data).toContain("energy")
@@ -45,7 +45,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
       expect(priceMetric.unit).toBe("$/MWh")
       expect(priceMetric.description).toContain("Price")
       
-      const curtailmentSolar = metrics.metrics.curtailment_solar
+      const curtailmentSolar = metrics.metrics.curtailment_solar_utility
       expect(curtailmentSolar).toBeDefined()
       expect(curtailmentSolar.unit).toBe("MW")
       expect(curtailmentSolar.description).toContain("Solar")
@@ -107,7 +107,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
       }
 
-      const response = await client.getMarket("NEM", ["curtailment_solar", "curtailment_wind"], {
+      const response = await client.getMarket("NEM", ["curtailment_solar_utility", "curtailment_wind"], {
         interval: "1h",
         dateStart: formatDate(startDate),
         dateEnd: formatDate(endDate),
@@ -121,7 +121,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)("Integration Tests", () => {
       
       // Check we got data for both metrics
       const metrics = response.response.data.map(d => d.metric)
-      expect(metrics).toContain("curtailment_solar")
+      expect(metrics).toContain("curtailment_solar_utility")
       expect(metrics).toContain("curtailment_wind")
     })
   })

@@ -33,7 +33,7 @@ async function main() {
 
     // Fetch 5-minute curtailment power data for all NEM regions
     // By omitting dateEnd, we get the latest available data
-    const metrics: MarketMetric[] = ["curtailment_solar", "curtailment_wind", "curtailment"]
+    const metrics: MarketMetric[] = ["curtailment_solar_utility", "curtailment_wind", "curtailment"]
 
     const response = await client.getMarket("NEM", metrics, {
       interval: "5m",
@@ -96,7 +96,7 @@ async function main() {
       console.log(`\n${region}:`)
       console.log("-".repeat(40))
 
-      const solar = latestValues[region]["curtailment_solar"] || 0
+      const solar = latestValues[region]["curtailment_solar_utility"] || 0
       const wind = latestValues[region]["curtailment_wind"] || 0
       const total = latestValues[region]["curtailment"] || solar + wind
 
@@ -114,7 +114,7 @@ async function main() {
       console.log(`\n${region}:`)
       console.log("-".repeat(40))
 
-      const solarData = curtailmentByRegion[region]["curtailment_solar"] || []
+      const solarData = curtailmentByRegion[region]["curtailment_solar_utility"] || []
       const windData = curtailmentByRegion[region]["curtailment_wind"] || []
 
       if (solarData.length > 0) {
@@ -156,7 +156,7 @@ async function main() {
     let totalCurtailment = 0
 
     for (const region of regions) {
-      totalSolar += latestValues[region]["curtailment_solar"] || 0
+      totalSolar += latestValues[region]["curtailment_solar_utility"] || 0
       totalWind += latestValues[region]["curtailment_wind"] || 0
       totalCurtailment += latestValues[region]["curtailment"] || 0
     }
@@ -179,7 +179,7 @@ async function main() {
     console.log("TIME SERIES SAMPLE (Last 5 intervals)")
     console.log("=".repeat(60))
 
-    const nsw1Solar = curtailmentByRegion["NSW1"]?.["curtailment_solar"] || []
+    const nsw1Solar = curtailmentByRegion["NSW1"]?.["curtailment_solar_utility"] || []
     if (nsw1Solar.length > 0) {
       console.log("\nNSW1 Solar Curtailment (Last 5 intervals):")
       const lastFive = nsw1Solar.slice(-5)
