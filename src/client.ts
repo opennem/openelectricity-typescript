@@ -499,30 +499,30 @@ export class OpenElectricityClient {
     debug("Getting facility pollution data", { params })
 
     const queryParams = new URLSearchParams()
-    
+
     if (params.facility_code) {
       params.facility_code.forEach((code) =>
         queryParams.append("facility_code", code),
       )
     }
-    
+
     if (params.pollutant_code) {
       params.pollutant_code.forEach((code) =>
         queryParams.append("pollutant_code", code),
       )
     }
-    
+
     if (params.pollutant_category) {
       params.pollutant_category.forEach((category) =>
         queryParams.append("pollutant_category", category),
       )
     }
-    
+
     if (params.dateStart) {
       const dateStart = toTimezoneNaiveDate(params.dateStart, "dateStart")
       if (dateStart) queryParams.set("date_start", dateStart)
     }
-    
+
     if (params.dateEnd) {
       const dateEnd = toTimezoneNaiveDate(params.dateEnd, "dateEnd")
       if (dateEnd) queryParams.set("date_end", dateEnd)
@@ -534,9 +534,8 @@ export class OpenElectricityClient {
     )
 
     // Create data table from the response
-    const datatable = response.data.length > 0 
-      ? createDataTable(response.data)
-      : undefined
+    const datatable =
+      response.data.length > 0 ? createDataTable(response.data) : undefined
 
     return {
       response,

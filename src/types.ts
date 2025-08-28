@@ -22,7 +22,12 @@ export type DataPrimaryGrouping = "network" | "network_region"
 export type DataSecondaryGrouping = "fueltech" | "fueltech_group" | "renewable"
 
 // Metric Types
-export type DataMetric = "power" | "energy" | "emissions" | "market_value" | "pollution"
+export type DataMetric =
+  | "power"
+  | "energy"
+  | "emissions"
+  | "market_value"
+  | "pollution"
 export type MarketMetric =
   | "price"
   | "demand"
@@ -213,15 +218,37 @@ export interface IFacilityParams {
   network_region?: string
 }
 
-export type PollutantCategory = "air_pollutant" | "water_pollutant" | "heavy_metal" | "organic"
+export type PollutantCategory =
+  | "air_pollutant"
+  | "water_pollutant"
+  | "heavy_metal"
+  | "organic"
 
-export type PollutantCode = 
-  // Air pollutants  
-  | "nox" | "so2" | "co" | "pm10" | "pm2_5" | "voc" | "ammonia" | "hcl"
+export type PollutantCode =
+  // Air pollutants
+  | "nox"
+  | "so2"
+  | "co"
+  | "pm10"
+  | "pm2_5"
+  | "voc"
+  | "ammonia"
+  | "hcl"
   // Heavy metals
-  | "as" | "cd" | "cr3" | "cr6" | "cu" | "hg" | "ni" | "pb" | "zn"
+  | "as"
+  | "cd"
+  | "cr3"
+  | "cr6"
+  | "cu"
+  | "hg"
+  | "ni"
+  | "pb"
+  | "zn"
   // Organic compounds
-  | "benzene" | "formaldehyde" | "pah" | "dioxins"
+  | "benzene"
+  | "formaldehyde"
+  | "pah"
+  | "dioxins"
   // Other
   | "fluoride"
 
