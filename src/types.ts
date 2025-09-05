@@ -28,6 +28,7 @@ export type DataMetric =
   | "emissions"
   | "market_value"
   | "pollution"
+  | "storage_battery"
 export type MarketMetric =
   | "price"
   | "demand"
