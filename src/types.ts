@@ -89,10 +89,17 @@ export interface IUnit {
   fueltech_id: UnitFueltechType | null
   status_id: UnitStatusType | null
   capacity_registered: number | null
+  capacity_maximum: number | null
+  capacity_storage: number | null
   emissions_factor_co2: number | null
   data_first_seen: string | null
   data_last_seen: string | null
   dispatch_type: UnitDispatchType
+}
+
+export interface ILocation {
+  lat: number
+  lng: number
 }
 
 export interface IFacility {
@@ -101,6 +108,8 @@ export interface IFacility {
   network_id: string
   network_region: string
   description: string | null
+  npi_id: string | null
+  location: ILocation | null
   units: IUnit[]
 }
 
