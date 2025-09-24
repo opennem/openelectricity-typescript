@@ -46,15 +46,15 @@
 
 /* global console, process */
 
-import { OpenElectricityClient } from "../src"
+import { FuelTech, OpenElectricityClient, UnitStatus } from "../src"
 
 async function main(): Promise<void> {
   const client = new OpenElectricityClient()
 
   // Get retired coal facilities
   const { response } = await client.getFacilities({
-    status_id: ["retired"],
-    fueltech_id: ["coal_black", "coal_brown"],
+    status_id: [UnitStatus.RETIRED],
+    fueltech_id: [FuelTech.COAL_BLACK, FuelTech.COAL_BROWN],
   })
 
   // Group by closure year
