@@ -43,7 +43,16 @@ export type Metric = DataMetric | MarketMetric
 
 // Facility Types
 export type UnitStatusType = "committed" | "operating" | "retired"
+
+// Enum objects for easier usage with autocomplete
+export const UnitStatus = {
+  COMMITTED: "committed" as UnitStatusType,
+  OPERATING: "operating" as UnitStatusType,
+  RETIRED: "retired" as UnitStatusType,
+} as const
+
 export type UnitFueltechType =
+  | "battery"
   | "battery_charging"
   | "battery_discharging"
   | "bioenergy_biogas"
@@ -66,11 +75,38 @@ export type UnitFueltechType =
   | "wind_offshore"
   | "interconnector"
 
+// Enum object for fuel technologies
+export const FuelTech = {
+  BATTERY: "battery" as UnitFueltechType,
+  BATTERY_CHARGING: "battery_charging" as UnitFueltechType,
+  BATTERY_DISCHARGING: "battery_discharging" as UnitFueltechType,
+  BIOENERGY_BIOGAS: "bioenergy_biogas" as UnitFueltechType,
+  BIOENERGY_BIOMASS: "bioenergy_biomass" as UnitFueltechType,
+  COAL_BLACK: "coal_black" as UnitFueltechType,
+  COAL_BROWN: "coal_brown" as UnitFueltechType,
+  DISTILLATE: "distillate" as UnitFueltechType,
+  GAS_CCGT: "gas_ccgt" as UnitFueltechType,
+  GAS_OCGT: "gas_ocgt" as UnitFueltechType,
+  GAS_RECIP: "gas_recip" as UnitFueltechType,
+  GAS_STEAM: "gas_steam" as UnitFueltechType,
+  GAS_WCMG: "gas_wcmg" as UnitFueltechType,
+  HYDRO: "hydro" as UnitFueltechType,
+  PUMPS: "pumps" as UnitFueltechType,
+  SOLAR_ROOFTOP: "solar_rooftop" as UnitFueltechType,
+  SOLAR_THERMAL: "solar_thermal" as UnitFueltechType,
+  SOLAR_UTILITY: "solar_utility" as UnitFueltechType,
+  NUCLEAR: "nuclear" as UnitFueltechType,
+  WIND: "wind" as UnitFueltechType,
+  WIND_OFFSHORE: "wind_offshore" as UnitFueltechType,
+  INTERCONNECTOR: "interconnector" as UnitFueltechType,
+} as const
+
 export type UnitFueltechGroupType =
   | "coal"
   | "gas"
   | "wind"
   | "solar"
+  | "battery"
   | "battery_charging"
   | "battery_discharging"
   | "hydro"
@@ -78,10 +114,24 @@ export type UnitFueltechGroupType =
   | "bioenergy"
   | "pumps"
 
+export const UnitFueltechGroup = {
+  COAL: "coal" as UnitFueltechGroupType,
+  GAS: "gas" as UnitFueltechGroupType,
+  WIND: "wind" as UnitFueltechGroupType,
+  SOLAR: "solar" as UnitFueltechGroupType,
+  BATTERY: "battery" as UnitFueltechGroupType,
+  BATTERY_CHARGING: "battery_charging" as UnitFueltechGroupType,
+  BATTERY_DISCHARGING: "battery_discharging" as UnitFueltechGroupType,
+  HYDRO: "hydro" as UnitFueltechGroupType,
+  DISTILLATE: "distillate" as UnitFueltechGroupType,
+  BIOENERGY: "bioenergy" as UnitFueltechGroupType,
+  PUMPS: "pumps" as UnitFueltechGroupType,
+} as const
+
 export type UnitDispatchType =
   | "GENERATOR"
   | "LOAD"
-  | "NETWORK"
+  | "BIDIRECTIONAL"
   | "INTERCONNECTOR"
 
 export type UnitDateSpecificity = "year" | "month" | "quarter" | "day"
@@ -247,8 +297,8 @@ export interface INetworkTimeSeriesParams extends IMarketTimeSeriesParams {
 }
 
 export interface IFacilityParams {
-  status_id?: UnitStatusType[]
-  fueltech_id?: UnitFueltechType[]
+  status_id?: (UnitStatusType | string)[]
+  fueltech_id?: (UnitFueltechType | string)[]
   network_id?: NetworkCode | NetworkCode[]
   network_region?: string
 }
