@@ -84,6 +84,8 @@ export type UnitDispatchType =
   | "NETWORK"
   | "INTERCONNECTOR"
 
+export type UnitDateSpecificity = "year" | "month" | "quarter" | "day"
+
 export interface IUnit {
   code: string
   fueltech_id: UnitFueltechType | null
@@ -95,6 +97,27 @@ export interface IUnit {
   data_first_seen: string | null
   data_last_seen: string | null
   dispatch_type: UnitDispatchType
+  commencement_date?: string | null
+  commencement_date_specificity?: UnitDateSpecificity | null
+  commencement_date_display?: string | null
+  closure_date?: string | null
+  closure_date_specificity?: UnitDateSpecificity | null
+  closure_date_display?: string | null
+  expected_operation_date?: string | null
+  expected_operation_date_specificity?: UnitDateSpecificity | null
+  expected_operation_date_display?: string | null
+  expected_closure_date?: string | null
+  expected_closure_date_specificity?: UnitDateSpecificity | null
+  expected_closure_date_display?: string | null
+  construction_start_date?: string | null
+  construction_start_date_specificity?: UnitDateSpecificity | null
+  construction_start_date_display?: string | null
+  project_approval_date?: string | null
+  project_approval_date_specificity?: UnitDateSpecificity | null
+  project_approval_date_display?: string | null
+  project_lodgement_date?: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface ILocation {
@@ -111,6 +134,8 @@ export interface IFacility {
   npi_id: string | null
   location: ILocation | null
   units: IUnit[]
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 // Base API Response
