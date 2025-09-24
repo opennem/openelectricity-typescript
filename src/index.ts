@@ -10,6 +10,9 @@ export {
   OpenElectricityClient,
 } from "./client"
 
+// Export enums as constants for easier usage
+export { FuelTech, FuelTechGroup, UnitStatus } from "./types"
+
 // Export all types
 export type {
   DataInterval,
@@ -19,13 +22,12 @@ export type {
   DataSecondaryGrouping,
   // API Response Types
   IAPIResponse,
-  IMetricMetadata,
-  IMetricsResponse,
-  IValidationErrorDetail,
   // Request Parameter Types
   IFacilityPollutionParams,
   IFacilityTimeSeriesParams,
   IMarketTimeSeriesParams,
+  IMetricMetadata,
+  IMetricsResponse,
   INetworkTimeSeries,
   INetworkTimeSeriesParams,
   // Response Types
@@ -33,6 +35,7 @@ export type {
   ITimeSeriesResult,
   IUser,
   IUserMeta,
+  IValidationErrorDetail,
   MarketMetric,
   Metric,
   // Network and Data Types

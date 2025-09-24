@@ -114,7 +114,7 @@ export type UnitFueltechGroupType =
   | "bioenergy"
   | "pumps"
 
-export const UnitFueltechGroup = {
+export const FuelTechGroup = {
   COAL: "coal" as UnitFueltechGroupType,
   GAS: "gas" as UnitFueltechGroupType,
   WIND: "wind" as UnitFueltechGroupType,
