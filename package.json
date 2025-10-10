@@ -1,6 +1,6 @@
 {
   "name": "openelectricity",
-  "version": "0.7.0-0",
+  "version": "0.7.1-0",
   "description": "OpenElectricity API Typescript/Javascript client",
   "author": "OpenElectricity <enquiries@openelectricity.org.au>",
   "license": "MIT",
