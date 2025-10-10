@@ -148,6 +148,8 @@ export interface IUnit {
   capacity_registered: number | null
   capacity_maximum: number | null
   capacity_storage: number | null
+  max_generation: number | null
+  max_generation_interval: string | null
   emissions_factor_co2: number | null
   data_first_seen: string | null
   data_last_seen: string | null
