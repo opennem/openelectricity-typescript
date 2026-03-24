@@ -44,6 +44,10 @@ export type MarketMetric =
   | "curtailment_solar_utility_energy"
   | "curtailment_wind"
   | "curtailment_wind_energy"
+  | "flow_imports"
+  | "flow_exports"
+  | "flow_imports_energy"
+  | "flow_exports_energy"
 export type Metric = DataMetric | MarketMetric
 
 // Facility Types
