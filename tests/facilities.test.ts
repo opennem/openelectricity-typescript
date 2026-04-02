@@ -305,12 +305,12 @@ describe("Facilities", () => {
     })
   })
 
-  it("should handle no results (416 status code)", async () => {
+  it("should handle no results (404 status code)", async () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: false,
-        status: 416,
-        statusText: "Requested Range Not Satisfiable",
+        status: 404,
+        statusText: "Not Found",
       })
     )
 

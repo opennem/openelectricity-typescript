@@ -159,8 +159,8 @@ export class OpenElectricityClient {
       statusText: response.statusText,
     })
 
-    // Special handling for 416 (no results)
-    if (response.status === 416) {
+    // Special handling for 404 (no results)
+    if (response.status === 404) {
       throw new NoDataFound("No data found for the requested parameters")
     }
 
@@ -446,7 +446,7 @@ export class OpenElectricityClient {
   /**
    * Get facilities and their units from the /facilities endpoint
    * Optionally filter by status, fueltech, network and region
-   * Returns empty result if no facilities match the filters (416 status code)
+   * Returns empty result if no facilities match the filters (404 status code)
    */
   async getFacilities(params: IFacilityParams = {}): Promise<FacilityResponse> {
     debug("Getting facilities", { params })
