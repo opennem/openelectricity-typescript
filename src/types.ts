@@ -294,6 +294,7 @@ export interface IFacilityTimeSeriesParams {
   interval?: DataInterval
   dateStart?: string
   dateEnd?: string
+  unitCodes?: string | string[]
 }
 
 export interface IMarketTimeSeriesParams extends IFacilityTimeSeriesParams {

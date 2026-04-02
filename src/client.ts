@@ -354,7 +354,7 @@ export class OpenElectricityClient {
    */
   async getFacilityData(
     networkCode: NetworkCode,
-    facilityCodes: string | string[],
+    facilityCodes: string | string[] | undefined,
     metrics: DataMetric[],
     params: IFacilityTimeSeriesParams = {},
   ): Promise<ITimeSeriesResponse> {
@@ -374,10 +374,25 @@ export class OpenElectricityClient {
     if (dateEnd) queryParams.set("date_end", dateEnd)
 
     // Handle single or multiple facility codes
-    if (Array.isArray(facilityCodes)) {
-      facilityCodes.forEach((code) => queryParams.append("facility_code", code))
-    } else {
-      queryParams.append("facility_code", facilityCodes)
+    if (facilityCodes) {
+      if (Array.isArray(facilityCodes)) {
+        facilityCodes.forEach((code) =>
+          queryParams.append("facility_code", code),
+        )
+      } else {
+        queryParams.append("facility_code", facilityCodes)
+      }
+    }
+
+    // Handle single or multiple unit codes
+    if (params.unitCodes) {
+      if (Array.isArray(params.unitCodes)) {
+        params.unitCodes.forEach((code) =>
+          queryParams.append("unit_code", code),
+        )
+      } else {
+        queryParams.append("unit_code", params.unitCodes)
+      }
     }
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
