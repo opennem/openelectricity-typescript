@@ -178,3 +178,4 @@ dist
 docs/
 CLAUDE.md
 package-lock.json
+test-query.ts
