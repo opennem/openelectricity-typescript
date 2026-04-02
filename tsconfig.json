@@ -36,8 +36,7 @@
   },
   "include": [
     "src",
-    "tests",
-    "examples"
+    "tests"
   ],
   "exclude": [
     "node_modules",

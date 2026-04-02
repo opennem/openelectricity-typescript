@@ -5,7 +5,7 @@ import { INetworkTimeSeries } from "../src/types"
 
 // Mock fetch
 const mockFetch = vi.fn()
-globalThis.fetch = mockFetch
+globalThis.fetch = mockFetch as unknown as typeof fetch
 
 function mockFetchResponse(data: unknown): Promise<Response> {
   return Promise.resolve({
