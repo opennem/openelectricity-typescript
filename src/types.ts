@@ -37,7 +37,10 @@ export type MarketMetric =
   | "demand_gross_energy"
   | "generation_renewable"
   | "generation_renewable_energy"
+  | "generation_renewable_with_storage"
+  | "generation_renewable_with_storage_energy"
   | "renewable_proportion"
+  | "renewable_with_storage_proportion"
   | "curtailment"
   | "curtailment_energy"
   | "curtailment_solar_utility"
@@ -75,6 +78,7 @@ export type UnitFueltechType =
   | "gas_steam"
   | "gas_wcmg"
   | "hydro"
+  | "hydro_and_storage"
   | "pumps"
   | "solar_rooftop"
   | "solar_thermal"
@@ -100,6 +104,7 @@ export const FuelTech = {
   GAS_STEAM: "gas_steam" as UnitFueltechType,
   GAS_WCMG: "gas_wcmg" as UnitFueltechType,
   HYDRO: "hydro" as UnitFueltechType,
+  HYDRO_AND_STORAGE: "hydro_and_storage" as UnitFueltechType,
   PUMPS: "pumps" as UnitFueltechType,
   SOLAR_ROOFTOP: "solar_rooftop" as UnitFueltechType,
   SOLAR_THERMAL: "solar_thermal" as UnitFueltechType,
