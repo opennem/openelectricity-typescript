@@ -66,7 +66,7 @@ describe("DataTable.fromNetworkTimeSeries", () => {
     expect(table.getGroupings()).toEqual(["network_region"])
     expect(table.getMetrics().get("energy")).toBe("MWh")
     expect(table.getMetrics().get("power")).toBe("MW")
-    expect(table.getRows().length).toBeGreaterThanOrEqual(3)
+    expect(table.getRows()).toHaveLength(4)
   })
 })
 
