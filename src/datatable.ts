@@ -57,7 +57,7 @@ export class DataTable {
    */
   public static fromNetworkTimeSeries(data: INetworkTimeSeries[]): DataTable {
     const rows: IDataTableRow[] = []
-    const groupings = data[0].groupings || []
+    const groupings = data[0]?.groupings ?? []
     const metrics = new Map<string, string>()
     const table = new DataTable(rows, groupings, metrics)
 
