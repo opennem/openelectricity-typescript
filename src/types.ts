@@ -19,7 +19,11 @@ export type DataInterval =
   | "1y"
   | "fy"
 export type DataPrimaryGrouping = "network" | "network_region"
-export type DataSecondaryGrouping = "fueltech" | "fueltech_group" | "renewable"
+export type DataSecondaryGrouping =
+  | "fueltech"
+  | "fueltech_group"
+  | "status"
+  | "renewable"
 
 // Metric Types
 export type DataMetric =
@@ -28,6 +32,7 @@ export type DataMetric =
   | "emissions"
   | "market_value"
   | "pollution"
+  | "renewable_proportion"
   | "storage_battery"
 export type MarketMetric =
   | "price"
@@ -84,9 +89,15 @@ export type UnitFueltechType =
   | "solar_thermal"
   | "solar_utility"
   | "nuclear"
+  | "other"
+  | "solar"
   | "wind"
   | "wind_offshore"
+  | "imports"
+  | "exports"
   | "interconnector"
+  | "aggregator_vpp"
+  | "aggregator_dr"
 
 // Enum object for fuel technologies
 export const FuelTech = {
@@ -110,9 +121,15 @@ export const FuelTech = {
   SOLAR_THERMAL: "solar_thermal" as UnitFueltechType,
   SOLAR_UTILITY: "solar_utility" as UnitFueltechType,
   NUCLEAR: "nuclear" as UnitFueltechType,
+  OTHER: "other" as UnitFueltechType,
+  SOLAR: "solar" as UnitFueltechType,
   WIND: "wind" as UnitFueltechType,
   WIND_OFFSHORE: "wind_offshore" as UnitFueltechType,
+  IMPORTS: "imports" as UnitFueltechType,
+  EXPORTS: "exports" as UnitFueltechType,
   INTERCONNECTOR: "interconnector" as UnitFueltechType,
+  AGGREGATOR_VPP: "aggregator_vpp" as UnitFueltechType,
+  AGGREGATOR_DR: "aggregator_dr" as UnitFueltechType,
 } as const
 
 export type UnitFueltechGroupType =
@@ -127,6 +144,9 @@ export type UnitFueltechGroupType =
   | "distillate"
   | "bioenergy"
   | "pumps"
+  | "renewable"
+  | "fossil"
+  | "other"
 
 export const FuelTechGroup = {
   COAL: "coal" as UnitFueltechGroupType,
@@ -140,6 +160,9 @@ export const FuelTechGroup = {
   DISTILLATE: "distillate" as UnitFueltechGroupType,
   BIOENERGY: "bioenergy" as UnitFueltechGroupType,
   PUMPS: "pumps" as UnitFueltechGroupType,
+  RENEWABLE: "renewable" as UnitFueltechGroupType,
+  FOSSIL: "fossil" as UnitFueltechGroupType,
+  OTHER: "other" as UnitFueltechGroupType,
 } as const
 
 export type UnitDispatchType =
@@ -239,8 +262,8 @@ export interface IMetricsResponse {
 }
 
 export interface IAPIResponse<T> {
-  version: string
-  created_at: string
+  version?: string
+  created_at?: string
   success: boolean
   error: string | null
   data: T
@@ -387,7 +410,22 @@ export interface IFacilityResponse {
 export type FacilityResponse = IFacilityResponse | IEmptyFacilityResponse
 
 // User Types
-export type UserPlan = "BASIC" | "PRO" | "ENTERPRISE"
+export type UserPlan = "COMMUNITY" | "BASIC" | "PRO" | "ENTERPRISE"
+
+export type OpenNEMRolesType =
+  | "admin"
+  | "pro"
+  | "academic"
+  | "user"
+  | "anonymous"
+
+export const OpenNEMRoles = {
+  ADMIN: "admin" as OpenNEMRolesType,
+  PRO: "pro" as OpenNEMRolesType,
+  ACADEMIC: "academic" as OpenNEMRolesType,
+  USER: "user" as OpenNEMRolesType,
+  ANONYMOUS: "anonymous" as OpenNEMRolesType,
+} as const
 
 export interface IUserMeta {
   remaining: number
@@ -400,4 +438,7 @@ export interface IUser {
   owner_id: string
   plan: UserPlan
   meta: IUserMeta
+  rate_limit?: number
+  unkey_meta?: Record<string, unknown>
+  roles?: OpenNEMRolesType[]
 }
