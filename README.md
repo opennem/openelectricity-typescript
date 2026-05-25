@@ -8,13 +8,7 @@
 [![Downloads](https://img.shields.io/npm/dm/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
 [![License](https://img.shields.io/npm/l/openelectricity.svg)](https://github.com/opennem/openelectricity-typescript/blob/main/LICENSE)
 
-> [!WARNING]
-> This project and the v4 API are currently under active development.
-
 A TypeScript client for the [OpenElectricity](https://openelectricity.org.au) API, providing access to electricity network data and metrics.
-
-> [!NOTE]
-> API key signups are currently waitlisted and will be released gradually.
 
 To obtain an API key visit [platform.openelectricity.org.au](https://platform.openelectricity.org.au)
 
