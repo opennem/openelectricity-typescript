@@ -132,7 +132,7 @@ export class OpenElectricityClient {
   private async request<T>(
     path: string,
     options: RequestInit = {},
-  ): Promise<IAPIResponse<T>> {
+  ): Promise<T> {
     const url = `${this.baseUrl}${path}`
     const headers = {
       Authorization: `Bearer ${this.apiKey}`,
@@ -259,7 +259,7 @@ export class OpenElectricityClient {
       )
     }
 
-    return data as IAPIResponse<T>
+    return data as T
   }
 
   private isAPIErrorResponse(data: unknown): data is IAPIErrorResponse {
@@ -279,19 +279,7 @@ export class OpenElectricityClient {
    */
   async getAvailableMetrics(): Promise<IMetricsResponse> {
     debug("Getting available metrics")
-    const url = `${this.baseUrl}/metrics`
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to get metrics: ${response.statusText}`)
-    }
-
-    return (await response.json()) as IMetricsResponse
+    return this.request<IMetricsResponse>("/metrics")
   }
 
   /**
@@ -334,7 +322,7 @@ export class OpenElectricityClient {
       )
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(
+    const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/data/network/${networkCode}${query}`,
     )
 
@@ -396,7 +384,7 @@ export class OpenElectricityClient {
     }
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(
+    const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/data/facilities/${networkCode}${query}`,
     )
     return {
@@ -433,7 +421,7 @@ export class OpenElectricityClient {
       queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(
+    const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/market/network/${networkCode}${query}`,
     )
 
@@ -475,7 +463,9 @@ export class OpenElectricityClient {
       queryParams.set("network_region", params.network_region)
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<IFacility[]>(`/facilities/${query}`)
+    const response = await this.request<IAPIResponse<IFacility[]>>(
+      `/facilities/${query}`,
+    )
 
     // Create a record table with units as rows, including facility information
     const records: IFacilityRecord[] = response.data.flatMap((facility) =>
@@ -544,7 +534,7 @@ export class OpenElectricityClient {
     }
 
     const query = queryParams.toString() ? `?${queryParams.toString()}` : ""
-    const response = await this.request<INetworkTimeSeries[]>(
+    const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/pollution/facilities${query}`,
     )
 
@@ -563,6 +553,6 @@ export class OpenElectricityClient {
    */
   async getCurrentUser(): Promise<IAPIResponse<IUser>> {
     debug("Getting current user")
-    return this.request<IUser>("/me")
+    return this.request<IAPIResponse<IUser>>("/me")
   }
 }
