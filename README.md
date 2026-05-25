@@ -2,6 +2,12 @@
 
 ![logo](https://platform.openelectricity.org.au/oe_logo_full.png)
 
+[![npm](https://img.shields.io/npm/v/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
+[![types](https://img.shields.io/npm/types/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
+[![CI](https://github.com/opennem/openelectricity-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/opennem/openelectricity-typescript/actions/workflows/ci.yml)
+[![Downloads](https://img.shields.io/npm/dm/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
+[![License](https://img.shields.io/npm/l/openelectricity.svg)](https://github.com/opennem/openelectricity-typescript/blob/main/LICENSE)
+
 > [!WARNING]
 > This project and the v4 API are currently under active development.
 
@@ -10,7 +16,7 @@ A TypeScript client for the [OpenElectricity](https://openelectricity.org.au) AP
 > [!NOTE]
 > API key signups are currently waitlisted and will be released gradually.
 
-To obtain an API key visit [platform.openelectricity.org.au](https://platfrom.openelectricity.org.au)
+To obtain an API key visit [platform.openelectricity.org.au](https://platform.openelectricity.org.au)
 
 For documentation visit [docs.openelectricity.org.au](https://docs.openelectricity.org.au/introduction)
 
