@@ -129,6 +129,11 @@ export class OpenElectricityClient {
     debug("Initializing client", { baseUrl: this.baseUrl })
   }
 
+  /**
+   * Make a request and parse the JSON response into `T`. Returns raw `T` —
+   * callers wrap with `IAPIResponse<...>` for enveloped endpoints, or use
+   * the bare response type for non-enveloped ones like `/metrics`.
+   */
   private async request<T>(
     path: string,
     options: RequestInit = {},

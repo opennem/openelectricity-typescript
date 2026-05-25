@@ -84,7 +84,7 @@ jobs:
 
   coverage:
     name: coverage
-    needs: lint
+    needs: [test-node, test-bun]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
