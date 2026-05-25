@@ -11,7 +11,7 @@ export {
 } from "./client"
 
 // Export enums as constants for easier usage
-export { FuelTech, FuelTechGroup, UnitStatus } from "./types"
+export { FuelTech, FuelTechGroup, OpenNEMRoles, UnitStatus } from "./types"
 
 // Export all types
 export type {
@@ -40,6 +40,7 @@ export type {
   Metric,
   // Network and Data Types
   NetworkCode,
+  OpenNEMRolesType,
   UnitDispatchType,
   UnitFueltechGroupType,
   UnitFueltechType,
@@ -54,8 +55,13 @@ export type { IDataTableRow, IDescribeResult } from "./datatable"
 // Export DataTable class
 export { DataTable } from "./datatable"
 
+// Export RecordTable
+export { RecordTable } from "./recordtable"
+export type { IRecord } from "./recordtable"
+
 // Export datetime utilities
 export {
+  createNetworkDate,
   getLastCompleteInterval,
   getNetworkTimezone,
   getNetworkTimezoneOffset,
