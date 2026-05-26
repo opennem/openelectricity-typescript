@@ -366,10 +366,11 @@ describe("Facilities", () => {
       await client.getFacilities()
       fail("Expected error to be thrown")
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof OpenElectricityError) {
         expect(error.message).toBe("Permission denied. Check API key or your access level")
+        expect(error.statusCode).toBe(403)
       } else {
-        fail("Expected error to be an instance of Error")
+        fail("Expected error to be an instance of OpenElectricityError")
       }
     }
   })

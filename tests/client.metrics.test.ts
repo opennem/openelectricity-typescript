@@ -56,7 +56,7 @@ describe("getAvailableMetrics", () => {
     )
   })
 
-  it("throws permission error on 403", async () => {
+  it("throws OpenElectricityError with statusCode 403 on permission denied", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
@@ -64,9 +64,14 @@ describe("getAvailableMetrics", () => {
       json: () => Promise.resolve({}),
     } as Response)
 
-    await expect(client.getAvailableMetrics()).rejects.toThrow(
-      /Permission denied/,
-    )
+    try {
+      await client.getAvailableMetrics()
+      throw new Error("expected throw")
+    } catch (err) {
+      expect(err).toBeInstanceOf(OpenElectricityError)
+      expect((err as OpenElectricityError).statusCode).toBe(403)
+      expect((err as Error).message).toMatch(/Permission denied/)
+    }
   })
 
   it("throws OpenElectricityError on 500 with non-JSON body", async () => {

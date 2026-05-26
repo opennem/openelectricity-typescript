@@ -175,7 +175,11 @@ export class OpenElectricityClient {
         status: response.status,
         statusText: response.statusText,
       })
-      throw new Error("Permission denied. Check API key or your access level")
+      throw new OpenElectricityError(
+        "Permission denied. Check API key or your access level",
+        undefined,
+        response.status,
+      )
     }
 
     // Try to parse JSON response, handle cases where response is not valid JSON
