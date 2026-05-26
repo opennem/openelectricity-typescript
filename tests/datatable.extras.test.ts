@@ -97,3 +97,35 @@ describe("DataTable.select", () => {
     expect("power" in row).toBe(false)
   })
 })
+
+describe("DataTable.groupBy", () => {
+  // Regression: cache previously stored raw groups, so the second call
+  // flattened the source rows instead of returning the aggregated ones.
+  it("returns the same aggregated rows on repeated calls", () => {
+    const table = DataTable.fromNetworkTimeSeries(fixture)
+    const first = table.groupBy(["network_region"], "sum")
+    const second = table.groupBy(["network_region"], "sum")
+    expect(second.getRows()).toEqual(first.getRows())
+    expect(second.getRows()).toHaveLength(2)
+
+    const nsw1 = second.getRows().find((r) => r.network_region === "NSW1")
+    expect(nsw1?.energy).toBe(300)
+    expect(nsw1?.power).toBe(30)
+  })
+})
+
+describe("DataTable.filter", () => {
+  // Regression: the index fast-path used to infer single-column equality
+  // from any predicate and could return rows that violated additional
+  // clauses. Filter must always behave like Array.filter.
+  it("respects multi-column predicates", () => {
+    const table = DataTable.fromNetworkTimeSeries(fixture)
+    const filtered = table.filter(
+      (row) => row.network_region === "NSW1" && (row.energy as number) > 150,
+    )
+    expect(filtered.getRows()).toHaveLength(1)
+    const row = filtered.getRows()[0]
+    expect(row.network_region).toBe("NSW1")
+    expect(row.energy).toBe(200)
+  })
+})
