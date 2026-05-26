@@ -25,9 +25,8 @@ export interface IDescribeResult {
 
 interface IDataTableCache {
   sortedRows?: Map<string, IDataTableRow[]>
-  groupedRows?: Map<string, Map<string, IDataTableRow[]>>
+  groupedRows?: Map<string, IDataTableRow[]>
   latestTimestamp?: number
-  columnIndexes?: Map<string, Map<string | number | boolean, IDataTableRow[]>>
 }
 
 export class DataTable {
@@ -47,9 +46,7 @@ export class DataTable {
     this.metrics = metrics
     this.rowsMap = new Map()
 
-    // Create initial indexes
     this.createRowMap()
-    this.createColumnIndexes()
   }
 
   /**
@@ -115,31 +112,6 @@ export class DataTable {
     return parts.join("_")
   }
 
-  private createColumnIndexes(): void {
-    this.cache.columnIndexes = new Map()
-
-    // Create indexes for grouping columns
-    for (const column of this.groupings) {
-      const columnIndex = new Map<string | number | boolean, IDataTableRow[]>()
-
-      for (const row of this.rows) {
-        const value = row[column]
-        // Skip null values in index
-        if (value === null || value instanceof Date) continue
-
-        if (!columnIndex.has(value)) {
-          columnIndex.set(value, [])
-        }
-        const rows = columnIndex.get(value)
-        if (rows) {
-          rows.push(row)
-        }
-      }
-
-      this.cache.columnIndexes.set(column, columnIndex)
-    }
-  }
-
   /**
    * Get a row by its unique key
    * Used internally for efficient row lookups
@@ -196,41 +168,11 @@ export class DataTable {
    * Filter rows based on a condition
    */
   public filter(condition: (row: IDataTableRow) => boolean): DataTable {
-    // Check if we can use index for simple equality conditions
-    const indexedFilter = this.tryIndexFilter(condition)
-    if (indexedFilter) {
-      return indexedFilter
-    }
-
-    // Fall back to regular filter for complex conditions
-    const filteredRows = this.rows.filter(condition)
-    return new DataTable(filteredRows, this.groupings, this.metrics)
-  }
-
-  private tryIndexFilter(
-    condition: (row: IDataTableRow) => boolean,
-  ): DataTable | null {
-    // Try to find matching rows in our column indexes
-    for (const [column, columnIndex] of this.cache.columnIndexes || []) {
-      // Test the first row to see if this is a simple equality check on this column
-      if (this.rows.length === 0) return null
-      const testRow = { ...this.rows[0] }
-
-      // Try each possible value from the index
-      for (const [value, rows] of columnIndex) {
-        // Test if this is an equality check for this value
-        testRow[column] = value
-        const otherValues = { ...testRow }
-        otherValues[column] =
-          value === true ? false : value === false ? true : value === 0 ? 1 : 0
-
-        if (condition(testRow) && !condition(otherValues)) {
-          return new DataTable([...rows], this.groupings, this.metrics)
-        }
-      }
-    }
-
-    return null
+    return new DataTable(
+      this.rows.filter(condition),
+      this.groupings,
+      this.metrics,
+    )
   }
 
   /**
@@ -270,13 +212,9 @@ export class DataTable {
     aggregation: "sum" | "mean" = "sum",
   ): DataTable {
     const cacheKey = `${columns.join("_")}_${aggregation}`
-    const cachedGroups = this.cache.groupedRows?.get(cacheKey)
-    if (cachedGroups) {
-      return new DataTable(
-        Array.from(cachedGroups.values()).flat(),
-        columns,
-        this.metrics,
-      )
+    const cachedRows = this.cache.groupedRows?.get(cacheKey)
+    if (cachedRows) {
+      return new DataTable(cachedRows, columns, this.metrics)
     }
 
     const groups = new Map<string, IDataTableRow[]>()
@@ -354,11 +292,11 @@ export class DataTable {
       newRows.push(newRow)
     }
 
-    // Cache the results
+    // Cache the aggregated rows so repeated calls with the same args are stable
     if (!this.cache.groupedRows) {
       this.cache.groupedRows = new Map()
     }
-    this.cache.groupedRows.set(cacheKey, groups)
+    this.cache.groupedRows.set(cacheKey, newRows)
 
     return new DataTable(newRows, columns, this.metrics)
   }
