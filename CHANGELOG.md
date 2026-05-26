@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.9.1
+
+Bug fixes surfaced by the v0.9.0 end-to-end review.
+
+### Fixed
+
+- `OpenElectricityClient.request()` now throws `OpenElectricityError` (with
+  `statusCode = 403`) on permission denied responses instead of a bare
+  `Error`. 403 handling now matches 404 (`NoDataFound`) and 500
+  (`OpenElectricityError`) for `getAvailableMetrics` and every other method.
+- `DataTable.groupBy()` cached the raw per-group source rows but returned
+  aggregated rows on the first call, so a second call with the same
+  arguments returned unaggregated data. The cache now stores the
+  aggregated `newRows`.
+- `DataTable.filter()` had an index "fast path" that inferred single-column
+  equality from arbitrary predicates and could return rows that violated
+  other clauses of a multi-column condition. The optimisation has been
+  removed; `filter()` always uses `Array.filter`.
+
 ## 0.9.0
 
 Parity sync with the Python SDK, CI matrix expansion, and tightened error
