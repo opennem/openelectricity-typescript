@@ -1,6 +1,6 @@
 # OpenElectricity TypeScript Client
 
-![logo](https://platform.openelectricity.org.au/oe_logo_full.png)
+![logo](https://docs.openelectricity.org.au/images/oe_logo_full_black.png)
 
 [![npm](https://img.shields.io/npm/v/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
 [![types](https://img.shields.io/npm/types/openelectricity.svg)](https://www.npmjs.com/package/openelectricity)
