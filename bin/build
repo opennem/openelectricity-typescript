@@ -55,8 +55,7 @@ cat >dist/package.json <<EOF
     }
   },
   "browser": "./browser/index.js",
-  "sideEffects": false,
-  "license": "MIT"
+  "sideEffects": false
 }
 EOF
 
