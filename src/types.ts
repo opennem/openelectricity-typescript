@@ -59,12 +59,15 @@ export type MarketMetric =
 export type Metric = DataMetric | MarketMetric
 
 // Facility Types
-export type UnitStatusType = "committed" | "operating" | "retired"
+// commissioning is derived by the API: an operating unit whose max observed
+// generation is <=90% of capacity. Not a stored status.
+export type UnitStatusType = "committed" | "operating" | "commissioning" | "retired"
 
 // Enum objects for easier usage with autocomplete
 export const UnitStatus = {
   COMMITTED: "committed" as UnitStatusType,
   OPERATING: "operating" as UnitStatusType,
+  COMMISSIONING: "commissioning" as UnitStatusType,
   RETIRED: "retired" as UnitStatusType,
 } as const
 
