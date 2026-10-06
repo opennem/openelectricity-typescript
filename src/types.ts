@@ -286,7 +286,13 @@ export interface INetworkTimeSeries {
   metric: Metric
   unit: string
   interval: DataInterval
+  /** Start of the data range. The client sets it on every series it returns */
+  date_start?: string
+  /** End of the data range. The client sets it on every series it returns */
+  date_end?: string
+  /** @deprecated Use `date_start`, the key the API returns. The client fills this from it */
   start: string
+  /** @deprecated Use `date_end`, the key the API returns. The client fills this from it */
   end: string
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
