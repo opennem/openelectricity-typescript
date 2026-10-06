@@ -10,6 +10,7 @@ import type { RecordTable } from "./recordtable"
 export type NetworkCode = "NEM" | "WEM" | "AU"
 export type DataInterval =
   | "5m"
+  | "30m"
   | "1h"
   | "1d"
   | "7d"
@@ -56,6 +57,7 @@ export type MarketMetric =
   | "flow_exports"
   | "flow_imports_energy"
   | "flow_exports_energy"
+  | "solar_rooftop_forecast"
 export type Metric = DataMetric | MarketMetric
 
 // Facility Types
@@ -289,6 +291,8 @@ export interface INetworkTimeSeries {
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
   network_timezone_offset: string
+  /** Issue time of the newest forecast run used (forecast metrics only) */
+  forecast_run_time?: string
 }
 
 // Facility Data Types

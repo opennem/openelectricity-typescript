@@ -130,10 +130,28 @@ The client supports three types of data:
    - `price`: Spot price ($/MWh)
    - `demand`: Demand (MW)
    - `demand_energy`: Energy demand (MWh)
+   - `solar_rooftop_forecast`: AEMO rooftop solar forecast (MW, NEM only)
 
 3. Facility Data (`getFacilityData`):
    - Supports the same metrics as Network Data
    - Data is specific to a single facility
+
+### Forecasts
+
+`solar_rooftop_forecast` accepts a `dateEnd` in the future (up to the latest forecast interval). Each forecast series carries `forecast_run_time`, the issue time of the newest AEMO run used.
+
+```typescript
+const { response, datatable } = await client.getMarket("NEM", ["solar_rooftop_forecast"], {
+  interval: "30m",
+  dateStart: "2026-10-06T10:30:00",
+  dateEnd: "2026-10-08T10:30:00",
+  primaryGrouping: "network_region"
+})
+
+console.log(response.data[0].forecast_run_time) // "2026-10-06T10:30:00+10:00"
+```
+
+See the [forecast guide](https://docs.openelectricity.org.au/guides/forecast) for how to splice forecast onto actuals.
 
 ### Available Groupings
 

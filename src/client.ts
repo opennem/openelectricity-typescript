@@ -409,6 +409,8 @@ export class OpenElectricityClient {
    * @remarks
    * dateStart and dateEnd should be timezone naive dates in network time.
    * If timezone information is provided, it will be stripped and a warning will be logged.
+   * Forecast metrics (`*_forecast`) accept a future dateEnd and carry
+   * `forecast_run_time` on their series.
    */
   async getMarket(
     networkCode: NetworkCode,
