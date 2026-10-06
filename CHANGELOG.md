@@ -10,7 +10,8 @@ Rooftop solar forecast support ([opennem#675](https://github.com/opennem/opennem
 - `DataInterval` now includes `30m`, accepted on market and data endpoints.
 - `INetworkTimeSeries` gains optional `forecast_run_time`, the issue time of
   the newest forecast run used. Present only on forecast metric series, and
-  `null` for windows covered only by history with no recorded run time.
+  `null` when the values come from history loaded before run times were
+  recorded (before October 2026).
 
 Forecast metrics accept a `dateEnd` in the future. The client does no date
 validation, so no client change was needed for that.
