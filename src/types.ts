@@ -291,8 +291,8 @@ export interface INetworkTimeSeries {
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
   network_timezone_offset: string
-  /** Issue time of the newest forecast run used (forecast metrics only) */
-  forecast_run_time?: string
+  /** Issue time of the newest forecast run used (forecast metrics only), null when unknown */
+  forecast_run_time?: string | null
 }
 
 // Facility Data Types
