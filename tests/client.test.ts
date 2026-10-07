@@ -116,6 +116,103 @@ describe("OpenElectricityClient", () => {
     expect(result.datatable?.getRows()).toHaveLength(1)
   })
 
+  test("getMarket should pass a future dateEnd and keep forecast_run_time", async () => {
+    const mockResponse = {
+      version: "4.5.17",
+      created_at: "2026-10-06T10:31:00+10:00",
+      success: true,
+      error: null,
+      data: [
+        {
+          network_code: "NEM",
+          metric: "solar_rooftop_forecast",
+          unit: "MW",
+          interval: "30m",
+          start: "2026-10-06T10:30:00",
+          end: "2026-10-08T10:30:00",
+          groupings: ["network_region"],
+          forecast_run_time: "2026-10-06T10:30:00+10:00",
+          results: [
+            {
+              name: "solar_rooftop_forecast_NSW1",
+              date_start: "2026-10-06T10:30:00",
+              date_end: "2026-10-08T10:30:00",
+              columns: { region: "NSW1" },
+              data: [
+                ["2026-10-06T10:30:00+10:00", 5120.5],
+                ["2026-10-06T11:00:00+10:00", 5302.1],
+              ],
+            },
+          ],
+          network_timezone_offset: "+10:00",
+        } as INetworkTimeSeries,
+      ],
+    }
+
+    mockFetch.mockImplementationOnce(() => mockFetchResponse(mockResponse))
+
+    const result = await client.getMarket("NEM", ["solar_rooftop_forecast"], {
+      interval: "30m",
+      dateStart: "2026-10-06T10:30:00",
+      dateEnd: "2026-10-08T10:30:00",
+      primaryGrouping: "network_region",
+    })
+
+    const url = new URL(mockFetch.mock.calls[0][0] as string)
+    expect(url.searchParams.get("metrics")).toBe("solar_rooftop_forecast")
+    expect(url.searchParams.get("interval")).toBe("30m")
+    expect(url.searchParams.get("date_end")).toBe("2026-10-08T10:30:00")
+    expect(result.response.data[0].forecast_run_time).toBe(
+      "2026-10-06T10:30:00+10:00",
+    )
+    expect(result.datatable?.getRows()).toHaveLength(2)
+    expect(result.datatable?.getMetrics().get("solar_rooftop_forecast")).toBe(
+      "MW",
+    )
+  })
+
+  test("getMarket should accept a null forecast_run_time", async () => {
+    const mockResponse = {
+      version: "4.5.17",
+      created_at: "2026-10-06T10:31:00+10:00",
+      success: true,
+      error: null,
+      data: [
+        {
+          network_code: "NEM",
+          metric: "solar_rooftop_forecast",
+          unit: "MW",
+          interval: "30m",
+          start: "2026-10-05T09:00:00",
+          end: "2026-10-05T10:00:00",
+          groupings: [],
+          forecast_run_time: null,
+          results: [
+            {
+              name: "solar_rooftop_forecast_total",
+              date_start: "2026-10-05T09:00:00",
+              date_end: "2026-10-05T10:00:00",
+              columns: {},
+              data: [["2026-10-05T09:00:00+10:00", 8960.2]],
+            },
+          ],
+          network_timezone_offset: "+10:00",
+        } as INetworkTimeSeries,
+      ],
+    }
+
+    mockFetch.mockImplementationOnce(() => mockFetchResponse(mockResponse))
+
+    const result = await client.getMarket("NEM", ["solar_rooftop_forecast"], {
+      interval: "30m",
+      dateStart: "2026-10-05T09:00:00",
+      dateEnd: "2026-10-05T10:00:00",
+    })
+
+    expect(result.response.data[0].forecast_run_time).toBeNull()
+    expect(result.datatable?.getRows()).toHaveLength(1)
+  })
+
   test("getFacilityData should fetch and return facility data", async () => {
     const mockResponse = {
       version: "4.0.3.dev0",

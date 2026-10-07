@@ -59,7 +59,7 @@ const { response, datatable } = await client.getNetworkData("NEM", ["energy"], {
   dateStart: "2024-01-01T00:00:00",
   dateEnd: "2024-01-02T00:00:00",
   primaryGrouping: "network_region",
-  secondaryGroupings: ['fueltech_group']
+  secondaryGrouping: ["fueltech_group"]
 })
 
 // Get hourly price and demand data for each network region (returns DataTable)
@@ -130,10 +130,28 @@ The client supports three types of data:
    - `price`: Spot price ($/MWh)
    - `demand`: Demand (MW)
    - `demand_energy`: Energy demand (MWh)
+   - `solar_rooftop_forecast`: AEMO rooftop solar forecast (MW, NEM only)
 
 3. Facility Data (`getFacilityData`):
    - Supports the same metrics as Network Data
    - Data is specific to a single facility
+
+### Forecasts
+
+`solar_rooftop_forecast` accepts a `dateEnd` in the future (up to the latest forecast interval). Each forecast series carries `forecast_run_time`, the issue time of the newest AEMO run used.
+
+```typescript
+const { response, datatable } = await client.getMarket("NEM", ["solar_rooftop_forecast"], {
+  interval: "30m",
+  dateStart: "2026-10-06T10:30:00",
+  dateEnd: "2026-10-08T10:30:00",
+  primaryGrouping: "network_region"
+})
+
+console.log(response.data[0].forecast_run_time) // "2026-10-06T10:30:00+10:00"
+```
+
+See the [forecast guide](https://docs.openelectricity.org.au/guides/forecast) for how to splice forecast onto actuals.
 
 ### Available Groupings
 
@@ -141,14 +159,19 @@ Queries for network data and market data support groupings. These groupings are 
 
  1. Primary grouping (`primaryGrouping`)
     - `network` - Group by network (default)
-    - `network_region` - Group by network region
+    - `network_region` - Group by network region, returned as a `region` column
 
 Further, `getNetworkData` supports secondary groupings:
 
-  1. Secondary groupings (`secondaryGroupings`)
+  1. Secondary groupings (`secondaryGrouping`)
     - `fueltech` - All the core fueltechs
     - `fueltech_group` - Simplified list of fueltechs
     - `renewable` - Group by renewable
+    - `status` - Group by unit status
+
+### Response Fields
+
+Each series in `response.data` carries `date_start` and `date_end` for its data range, and each result carries its grouping values in `columns` (e.g. `{ region: "NSW1" }`). Timestamps are ISO 8601 in network time with an offset (e.g. `2026-10-05T00:00:00+10:00`). `start` and `end` are deprecated aliases of `date_start` and `date_end` and still work.
 
 ### Data Tables
 
@@ -157,10 +180,10 @@ The client provides two types of data tables for different use cases:
 1. **DataTable** - For time series data (returned by `getNetworkData`, `getMarket`, and `getFacilityData`)
    ```typescript
    // Filter rows
-   const filtered = datatable.filter(row => row.network_region === "NSW1")
+   const filtered = datatable.filter(row => row.region === "NSW1")
 
    // Group by columns
-   const grouped = datatable.groupBy(["network_region"], "sum")
+   const grouped = datatable.groupBy(["region"], "sum")
 
    // Sort by values
    const sorted = datatable.sortBy(["energy"], false)

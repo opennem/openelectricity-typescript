@@ -103,6 +103,23 @@ function toTimezoneNaiveDate(
   return date
 }
 
+/**
+ * Fill the deprecated `start`/`end` from `date_start`/`date_end` (the keys the
+ * API returns), and the reverse for older responses, so either name works.
+ */
+function withDateAliases(data: INetworkTimeSeries[]): INetworkTimeSeries[] {
+  if (!Array.isArray(data)) return data
+  for (const series of data) {
+    if (series.date_start === undefined) series.date_start = series.start
+    if (series.date_end === undefined) series.date_end = series.end
+    if (series.start === undefined && series.date_start !== undefined)
+      series.start = series.date_start
+    if (series.end === undefined && series.date_end !== undefined)
+      series.end = series.date_end
+  }
+  return data
+}
+
 export class OpenElectricityClient {
   private baseUrl: string
   private apiKey: string
@@ -334,6 +351,7 @@ export class OpenElectricityClient {
     const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/data/network/${networkCode}${query}`,
     )
+    withDateAliases(response.data)
 
     return {
       response,
@@ -396,6 +414,7 @@ export class OpenElectricityClient {
     const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/data/facilities/${networkCode}${query}`,
     )
+    withDateAliases(response.data)
     return {
       response,
       datatable: createDataTable(response.data),
@@ -409,6 +428,8 @@ export class OpenElectricityClient {
    * @remarks
    * dateStart and dateEnd should be timezone naive dates in network time.
    * If timezone information is provided, it will be stripped and a warning will be logged.
+   * Forecast metrics (`*_forecast`) accept a future dateEnd and carry
+   * `forecast_run_time` on their series.
    */
   async getMarket(
     networkCode: NetworkCode,
@@ -433,6 +454,7 @@ export class OpenElectricityClient {
     const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/market/network/${networkCode}${query}`,
     )
+    withDateAliases(response.data)
 
     return {
       response,
@@ -546,6 +568,7 @@ export class OpenElectricityClient {
     const response = await this.request<IAPIResponse<INetworkTimeSeries[]>>(
       `/pollution/facilities${query}`,
     )
+    withDateAliases(response.data)
 
     // Create data table from the response
     const datatable =

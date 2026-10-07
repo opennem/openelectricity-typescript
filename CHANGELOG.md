@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.10.0
+
+Rooftop solar forecast support ([opennem#675](https://github.com/opennem/opennem/issues/675)).
+
+### Added
+
+- `MarketMetric` now includes `solar_rooftop_forecast` (MW, NEM only).
+- `DataInterval` now includes `30m`, accepted on market and data endpoints.
+- `INetworkTimeSeries` gains optional `forecast_run_time`, the issue time of
+  the newest forecast run used. Present only on forecast metric series, and
+  `null` when the values come from history loaded before run times were
+  recorded (before October 2026).
+
+Forecast metrics accept a `dateEnd` in the future. The client does no date
+validation, so no client change was needed for that.
+
+### Changed
+
+- `INetworkTimeSeries` gains `date_start` / `date_end`, the keys the API
+  returns. `start` / `end` are deprecated; the client fills them from
+  `date_start` / `date_end` (and the reverse for older responses), so existing
+  code keeps working.
+
+### Docs
+
+- README data table examples use the `region` column, which is what the API
+  returns for `primaryGrouping: "network_region"`. They showed
+  `network_region`, which was never set. The `secondaryGrouping` param name is
+  also fixed.
+
 ## 0.9.1
 
 Bug fixes surfaced by the v0.9.0 end-to-end review.
